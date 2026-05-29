@@ -253,6 +253,67 @@ Heartbeat Interval: 60
 Retries: 1
 ```
 
+## Conexion SSH y administracion de Kuma en AWS
+
+Despues de crear los monitores, el administrador puede conectarse por SSH a la instancia EC2 donde esta desplegado Uptime Kuma. Desde la raiz del proyecto se debe ejecutar:
+
+```bash
+cd ~/Desktop/Monitorizacion-de-red
+ssh -i monitorizacion-key.pem ubuntu@IP_PUBLICA_AWS
+```
+
+Si la IP publica actual es `32.199.138.197`, el comando seria:
+
+```bash
+ssh -i monitorizacion-key.pem ubuntu@32.199.138.197
+```
+
+Una vez dentro de la instancia, se puede verificar que Uptime Kuma este en ejecucion con:
+
+```bash
+sudo docker ps
+```
+
+Debe aparecer el contenedor:
+
+```text
+uptime-kuma
+```
+
+Tambien se pueden consultar los logs del contenedor:
+
+```bash
+sudo docker logs uptime-kuma
+```
+
+Comandos utiles de administracion:
+
+```bash
+sudo docker restart uptime-kuma
+sudo docker stop uptime-kuma
+sudo docker start uptime-kuma
+```
+
+El acceso a la interfaz web de Uptime Kuma no se realiza por SSH, sino desde el navegador:
+
+```text
+http://IP_PUBLICA_AWS:3001
+```
+
+Ejemplo:
+
+```text
+http://32.199.138.197:3001
+```
+
+Si no se recuerda la IP publica actual, se puede revisar el inventario generado por Ansible:
+
+```bash
+cat inventory.ini
+```
+
+En ese archivo aparece la IP que Ansible esta usando para conectarse a la instancia.
+
 ## Persistencia de datos
 
 Uptime Kuma conserva usuarios, monitores, configuracion e historial mediante el volumen Docker definido en `docker/docker-compose.yml`:
@@ -290,25 +351,6 @@ El script busca los recursos por:
 - Instancia con nombre `monitorizacion-red-uptime-kuma`.
 - Security Group `monitorizacion-red-sg`.
 - Region `us-east-1`.
-
-## Evidencias sugeridas
-
-Para documentar el funcionamiento del proyecto, guardar capturas en `evidencias/`:
-
-- Panel principal de Uptime Kuma en AWS.
-- Monitores AWS en estado `Up`.
-- Panel principal de Uptime Kuma local.
-- Monitores locales en estado `Up`.
-- Salida de `sudo docker ps`.
-- Contenido actualizado de `inventory.ini` con la IP publica de AWS.
-
-## Notas de seguridad
-
-- No publicar `monitorizacion-key.pem` ni credenciales de AWS.
-- Restringir SSH (`22`) a una IP confiable cuando sea posible.
-- Restringir el acceso web (`3001`) si el panel no debe quedar publico.
-- Cambiar las reglas abiertas `0.0.0.0/0` antes de usar el proyecto fuera de un laboratorio.
-- Proteger el usuario administrador inicial de Uptime Kuma con una contrasena fuerte.
 
 ## Resultado esperado
 
