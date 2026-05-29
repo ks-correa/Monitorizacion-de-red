@@ -1,0 +1,90 @@
+---
+- name: Crear infraestructura AWS para Monitorizacion de Red
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+    - variables_aws.yml
+
+  tasks:
+    - name: Obtener AMI Ubuntu 22.04 mas reciente
+      amazon.aws.ec2_ami_info:
+        region: "{{ aws_region }}"
+        owners: "099720109477"
+        filters:
+          name: "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+          architecture: "x86_64"
+          virtualization-type: "hvm"
+          root-device-type: "ebs"
+      register: ubuntu_amis
+
+    - name: Seleccionar AMI mas reciente
+      set_fact:
+        ubuntu_ami: "{{ ubuntu_amis.images | sort(attribute='creation_date') | last }}"
+
+    - name: Mostrar AMI seleccionada
+      debug:
+        msg: "AMI seleccionada: {{ ubuntu_ami.image_id }}"
+
+    - name: Crear Security Group para SSH y Uptime Kuma
+      amazon.aws.ec2_security_group:
+        name: "{{ security_group_name }}"
+        description: "Security Group para proyecto de monitorizacion de red"
+        region: "{{ aws_region }}"
+        vpc_id: "{{ vpc_id }}"
+        state: present
+        purge_rules: true
+        purge_rules_egress: true
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: "{{ allowed_ssh_cidr }}"
+            rule_desc: Permitir SSH para Ansible
+
+          - proto: tcp
+            from_port: 3001
+            to_port: 3001
+            cidr_ip: "{{ allowed_web_cidr }}"
+            rule_desc: Permitir acceso web a Uptime Kuma
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+      register: sg_monitorizacion
+
+    - name: Mostrar Security Group creado o actualizado
+      debug:
+        msg: "Security Group utilizado: {{ sg_monitorizacion.group_id }}"
+
+    - name: Crear instancia EC2 para Uptime Kuma
+      amazon.aws.ec2_instance:
+        name: "{{ instance_name }}"
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ubuntu_ami.image_id }}"
+        region: "{{ aws_region }}"
+        security_group: "{{ sg_monitorizacion.group_id }}"
+        wait: yes
+        network:
+          assign_public_ip: true
+        tags:
+          Proyecto: MonitorizacionRed
+          Servicio: UptimeKuma
+          CreadoPor: Ansible
+      register: ec2
+
+    - name: Mostrar informacion de la instancia creada
+      debug:
+        var: ec2.instances
+
+    - name: Crear inventory.ini con IP publica
+      copy:
+        dest: ../inventory.ini
+        content: |
+          [aws]
+          {{ ec2.instances[0].public_ip_address }} ansible_user=ubuntu ansible_ssh_private_key_file=./monitorizacion-key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+    - name: Mostrar IP publica de la instancia
+      debug:
+        msg: "Instancia creada correctamente. IP publica: {{ ec2.instances[0].public_ip_address }}"

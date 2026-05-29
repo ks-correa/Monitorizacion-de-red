@@ -1,0 +1,16 @@
+*.pem
+*.key
+*.pub
+
+.env
+.env.*
+credentials
+config
+
+.aws/
+__pycache__/
+*.log
+*.retry
+
+.DS_Store
+.vscode/

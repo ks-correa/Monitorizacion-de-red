@@ -1,0 +1,56 @@
+---
+- name: Desplegar Uptime Kuma en entorno local con Docker
+  hosts: local
+  become: yes
+
+  tasks:
+    - name: Actualizar cache de paquetes
+      apt:
+        update_cache: yes
+
+    - name: Instalar Docker
+      apt:
+        name:
+          - docker.io
+        state: present
+
+    - name: Iniciar y habilitar Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Verificar Docker Compose plugin
+      command: docker compose version
+      register: compose_version
+      changed_when: false
+
+    - name: Mostrar version de Docker Compose
+      debug:
+        var: compose_version.stdout
+
+    - name: Crear directorio del servicio Uptime Kuma
+      file:
+        path: /opt/uptime-kuma
+        state: directory
+        mode: '0755'
+
+    - name: Copiar archivo docker-compose.yml
+      copy:
+        src: ../docker/docker-compose.yml
+        dest: /opt/uptime-kuma/docker-compose.yml
+        mode: '0644'
+
+    - name: Levantar contenedor de Uptime Kuma
+      command: docker compose up -d
+      args:
+        chdir: /opt/uptime-kuma
+
+    - name: Verificar contenedores activos
+      command: docker ps
+      register: contenedores
+      changed_when: false
+
+    - name: Mostrar contenedores activos
+      debug:
+        var: contenedores.stdout_lines
