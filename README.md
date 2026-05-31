@@ -160,6 +160,18 @@ allowed_grafana_cidr: "{{ effective_admin_cidr }}"
 
 Durante la configuracion inicial se puede abrir temporalmente con `0.0.0.0/0` para facilitar pruebas. Una vez validado el despliegue, el estado seguro del proyecto limita SSH `22`, Uptime Kuma `3001` y Grafana `3000` al CIDR administrativo detectado o definido manualmente.
 
+## Seguridad y restricciones
+
+El proyecto aplica controles basicos para reducir riesgos durante el despliegue y la administracion de la solucion:
+
+- **Proteccion de llaves privadas y credenciales:** la llave `monitorizacion-key.pem` no se versiona porque esta excluida en `.gitignore`. La clave de Grafana no se deja como `admin/admin`; Ansible genera una clave segura persistente en `.secrets/grafana_admin_password`, directorio que tambien esta excluido de Git, y la copia al servidor mediante `/opt/metricas/.env` con permisos restringidos.
+- **Exposicion de puertos:** el Security Group solo permite SSH `22`, Uptime Kuma `3001` y Grafana `3000` desde el CIDR publico administrativo. Prometheus `9090` y Node Exporter `9100` no se abren en el Security Group de AWS.
+- **Evitar configuracion manual repetitiva:** los valores principales se centralizan en `cloud/variables_aws.yml`. Los scripts `update_inventory_aws.sh` y `update_security_aws.sh` actualizan automaticamente la IP publica de la instancia y las reglas del Security Group.
+- **Uso controlado de interfaces graficas:** la infraestructura y las reglas de red se administran con Ansible y scripts. Las interfaces web de Uptime Kuma y Grafana se usan solo para monitoreo y visualizacion, y su acceso queda limitado por el Security Group.
+- **Comprension tecnica de la solucion:** se diferencia entre la IP privada local del administrador, la IP publica administrativa detectada desde Internet y la IP publica de la instancia EC2. Tambien se distingue entre puertos publicados por Docker y puertos realmente expuestos por AWS.
+
+La verificacion SSH se mantiene activa con `host_key_checking = True`. El script `update_inventory_aws.sh` registra la huella de la instancia en `~/.ssh/known_hosts` antes de que Ansible se conecte.
+
 ## Despliegue en AWS
 
 El despliegue base en AWS se ejecuta con:
