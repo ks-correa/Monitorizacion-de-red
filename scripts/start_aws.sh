@@ -6,8 +6,7 @@ echo "Iniciando instancia AWS del proyecto..."
 
 cd "$(dirname "$0")/.."
 
-REGION="us-east-1"
-INSTANCE_NAME="monitorizacion-red-uptime-kuma"
+source scripts/aws_config.sh
 
 INSTANCE_ID=$(aws ec2 describe-instances \
   --region "$REGION" \
@@ -49,6 +48,9 @@ else
     --region "$REGION" \
     --instance-ids "$INSTANCE_ID"
 fi
+
+echo "Actualizando reglas del Security Group con la IP publica actual del administrador..."
+./scripts/update_security_aws.sh
 
 echo "Actualizando inventory.ini con la IP publica actual..."
 ./scripts/update_inventory_aws.sh

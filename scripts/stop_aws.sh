@@ -6,8 +6,7 @@ echo "Deteniendo instancia AWS del proyecto..."
 
 cd "$(dirname "$0")/.."
 
-REGION="us-east-1"
-INSTANCE_NAME="monitorizacion-red-uptime-kuma"
+source scripts/aws_config.sh
 
 INSTANCE_ID=$(aws ec2 describe-instances \
   --region "$REGION" \

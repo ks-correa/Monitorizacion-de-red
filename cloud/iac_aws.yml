@@ -8,6 +8,27 @@
     - variables_aws.yml
 
   tasks:
+    - name: Detectar IP publica del administrador
+      uri:
+        url: https://checkip.amazonaws.com
+        return_content: yes
+      register: detected_admin_public_ip
+      changed_when: false
+      when: admin_public_cidr == "auto"
+
+    - name: Definir CIDR administrativo efectivo
+      set_fact:
+        effective_admin_cidr: >-
+          {{
+            (detected_admin_public_ip.content | trim ~ '/32')
+            if admin_public_cidr == 'auto'
+            else admin_public_cidr
+          }}
+
+    - name: Mostrar CIDR permitido para administracion
+      debug:
+        msg: "Los puertos administrativos se limitaran a {{ effective_admin_cidr }}"
+
     - name: Obtener AMI Ubuntu 22.04 mas reciente
       amazon.aws.ec2_ami_info:
         region: "{{ aws_region }}"
@@ -84,12 +105,35 @@
       debug:
         var: ec2.instances
 
+    - name: Esperar puerto SSH antes de registrar huella
+      wait_for:
+        host: "{{ ec2.instances[0].public_ip_address }}"
+        port: 22
+        timeout: 300
+        state: started
+      delegate_to: localhost
+
+    - name: Crear directorio local para known_hosts
+      file:
+        path: "{{ known_hosts_file | dirname }}"
+        state: directory
+        mode: '0700'
+      delegate_to: localhost
+
+    - name: Registrar huella SSH de la instancia
+      known_hosts:
+        name: "{{ ec2.instances[0].public_ip_address }}"
+        key: "{{ lookup('pipe', 'ssh-keyscan -H ' ~ ec2.instances[0].public_ip_address) }}"
+        path: "{{ known_hosts_file }}"
+        state: present
+      delegate_to: localhost
+
     - name: Crear inventory.ini con IP publica
       copy:
         dest: ../inventory.ini
         content: |
           [aws]
-          {{ ec2.instances[0].public_ip_address }} ansible_user=ubuntu ansible_ssh_private_key_file=./monitorizacion-key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+          {{ ec2.instances[0].public_ip_address }} ansible_user=ubuntu ansible_ssh_private_key_file={{ key_file }}
 
     - name: Mostrar IP publica de la instancia
       debug:

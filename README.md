@@ -69,6 +69,7 @@ El proyecto integra:
 |-- inventory.ini
 |-- cloud/
 |   |-- iac_aws.yml
+|   |-- seguridad_aws.yml
 |   |-- desplegar_kuma_aws.yml
 |   |-- desplegar_metricas_aws.yml
 |   `-- variables_aws.yml
@@ -91,6 +92,7 @@ El proyecto integra:
     |-- destroy_aws.sh
     |-- start_aws.sh
     |-- stop_aws.sh
+    |-- update_security_aws.sh
     `-- update_inventory_aws.sh
 ```
 
@@ -143,15 +145,20 @@ Valores actuales principales:
 aws_region: us-east-1
 instance_type: t3.small
 key_name: monitorizacion-key
+key_file: ./monitorizacion-key.pem
 security_group_name: monitorizacion-red-sg
 instance_name: monitorizacion-red-uptime-kuma
 vpc_id: vpc-055c82200f460c027
-allowed_ssh_cidr: 0.0.0.0/0
-allowed_web_cidr: 0.0.0.0/0
-allowed_grafana_cidr: 0.0.0.0/0
+local_pc_ip: 192.168.0.10
+admin_public_cidr: auto
+allowed_ssh_cidr: "{{ effective_admin_cidr }}"
+allowed_web_cidr: "{{ effective_admin_cidr }}"
+allowed_grafana_cidr: "{{ effective_admin_cidr }}"
 ```
 
-Para un entorno real, se recomienda restringir `allowed_ssh_cidr`, `allowed_web_cidr` y `allowed_grafana_cidr` a una IP o red conocida.
+`admin_public_cidr: auto` hace que Ansible detecte la IP publica actual del administrador usando `https://checkip.amazonaws.com` y la convierta en un CIDR `/32`. Esa IP es la que AWS ve desde Internet; la IP privada local, por ejemplo `192.168.0.10`, se conserva solo como referencia de red local.
+
+Durante la configuracion inicial se puede abrir temporalmente con `0.0.0.0/0` para facilitar pruebas. Una vez validado el despliegue, el estado seguro del proyecto limita SSH `22`, Uptime Kuma `3001` y Grafana `3000` al CIDR administrativo detectado o definido manualmente.
 
 ## Despliegue en AWS
 
@@ -166,7 +173,7 @@ Este script realiza dos fases:
 1. Ejecuta `cloud/iac_aws.yml` para crear o actualizar la infraestructura:
    - Busca la AMI mas reciente de Ubuntu Server 22.04.
    - Crea o actualiza el Security Group.
-   - Permite SSH `22`, Uptime Kuma `3001` y Grafana `3000`.
+   - Detecta la IP publica administrativa y limita SSH `22`, Uptime Kuma `3001` y Grafana `3000`.
    - Crea la instancia EC2.
    - Genera `inventory.ini` con la IP publica de la instancia.
 
@@ -196,6 +203,8 @@ Este script ejecuta `cloud/desplegar_metricas_aws.yml`, que:
 - Crea `/opt/metricas`.
 - Copia `metricas/docker-compose-metricas.yml`.
 - Copia `metricas/prometheus.yml`.
+- Genera una clave segura persistente para Grafana en `.secrets/grafana_admin_password`.
+- Copia `/opt/metricas/.env` con permisos restringidos.
 - Levanta los contenedores `prometheus`, `node-exporter` y `grafana`.
 
 Acceso publico esperado:
@@ -204,16 +213,16 @@ Acceso publico esperado:
 Grafana: http://IP_PUBLICA_AWS:3000
 ```
 
-En la configuracion actual de AWS solo se abre publicamente Grafana en el Security Group. Prometheus `9090` y Node Exporter `9100` quedan pensados principalmente para comunicacion interna entre contenedores o consulta desde la instancia.
+En la configuracion segura de AWS, Grafana `3000`, Uptime Kuma `3001` y SSH `22` quedan limitados al CIDR administrativo. Prometheus `9090` y Node Exporter `9100` no se abren en el Security Group y quedan pensados principalmente para comunicacion interna entre contenedores o consulta desde la instancia.
 
-Credenciales iniciales de Grafana:
+Credenciales de Grafana:
 
 ```text
-Usuario: admin
-Clave: admin
+Usuario: definido en grafana_admin_user
+Clave: generada en .secrets/grafana_admin_password
 ```
 
-Se recomienda cambiar la clave en el primer inicio de sesion.
+La clave no se guarda en archivos versionados. El directorio `.secrets/` esta excluido por `.gitignore`.
 
 ## Administracion de la instancia AWS
 
@@ -233,9 +242,18 @@ Al encenderla, la IP publica puede cambiar. Por eso `start_aws.sh` llama a:
 
 ```bash
 ./scripts/update_inventory_aws.sh
+./scripts/update_security_aws.sh
 ```
 
-Tambien se puede ejecutar manualmente para regenerar `inventory.ini` con la IP publica actual.
+Tambien se pueden ejecutar manualmente para regenerar `inventory.ini` con la IP publica actual de la instancia y actualizar el Security Group con la IP publica actual del administrador.
+
+Para actualizar solo las reglas del Security Group sin recrear la instancia:
+
+```bash
+./scripts/update_security_aws.sh
+```
+
+El inventario ya no desactiva `StrictHostKeyChecking`. `update_inventory_aws.sh` registra la huella SSH actual en `~/.ssh/known_hosts`, y `ansible.cfg` mantiene `host_key_checking = True`.
 
 Para consultar la IP usada por Ansible:
 
@@ -303,6 +321,7 @@ Este proceso:
 - Verifica Docker Compose.
 - Crea `/opt/metricas`.
 - Copia la configuracion de metricas.
+- Genera o reutiliza la clave segura de Grafana en `.secrets/grafana_admin_password`.
 - Levanta `prometheus`, `node-exporter` y `grafana`.
 
 Accesos locales:
@@ -313,11 +332,11 @@ Prometheus:    http://localhost:9090
 Node Exporter: http://localhost:9100/metrics
 ```
 
-Credenciales iniciales de Grafana:
+Credenciales de Grafana:
 
 ```text
-Usuario: admin
-Clave: admin
+Usuario: definido en grafana_admin_user
+Clave: generada en .secrets/grafana_admin_password
 ```
 
 ## Configuracion de Prometheus
