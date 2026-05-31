@@ -1,0 +1,62 @@
+---
+- name: Desplegar modulo de metricas en entorno local
+  hosts: local
+  become: yes
+
+  tasks:
+    - name: Actualizar cache de paquetes
+      apt:
+        update_cache: yes
+
+    - name: Instalar Docker
+      apt:
+        name:
+          - docker.io
+        state: present
+
+    - name: Iniciar y habilitar Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Verificar Docker Compose plugin
+      command: docker compose version
+      register: compose_version
+      changed_when: false
+
+    - name: Mostrar version de Docker Compose
+      debug:
+        var: compose_version.stdout
+
+    - name: Crear directorio para modulo de metricas
+      file:
+        path: /opt/metricas
+        state: directory
+        mode: '0755'
+
+    - name: Copiar archivo docker-compose-metricas.yml
+      copy:
+        src: ../metricas/docker-compose-metricas.yml
+        dest: /opt/metricas/docker-compose-metricas.yml
+        mode: '0644'
+
+    - name: Copiar archivo prometheus.yml
+      copy:
+        src: ../metricas/prometheus.yml
+        dest: /opt/metricas/prometheus.yml
+        mode: '0644'
+
+    - name: Levantar contenedores de metricas
+      command: docker compose -f docker-compose-metricas.yml up -d
+      args:
+        chdir: /opt/metricas
+
+    - name: Verificar contenedores activos
+      command: docker ps
+      register: contenedores
+      changed_when: false
+
+    - name: Mostrar contenedores activos
+      debug:
+        var: contenedores.stdout_lines

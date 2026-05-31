@@ -1,19 +1,24 @@
-# Guía de Monitores en Uptime Kuma
+# Guia de Monitores en Uptime Kuma
 
-Esta guía describe los monitores que se deben crear en Uptime Kuma para validar el funcionamiento del proyecto de **Monitorización de Red** en dos escenarios:
+Esta guia describe los monitores que se deben crear en Uptime Kuma para validar el funcionamiento del proyecto de **Monitorizacion de Red** en dos escenarios:
 
 1. Entorno cloud sobre AWS EC2.
 2. Entorno local sobre Lubuntu o un servidor Linux.
 
-Los monitores permiten comprobar la disponibilidad del servicio, la conectividad hacia Internet, el acceso SSH a la instancia cloud y la conectividad básica dentro de la red local.
+El proyecto ahora combina dos capas:
+
+- **Uptime Kuma**, para verificar disponibilidad de servicios, puertos y conectividad.
+- **Prometheus + Node Exporter + Grafana**, para recolectar y visualizar metricas del servidor.
+
+Los monitores de esta guia se crean desde la interfaz web de Uptime Kuma.
 
 ---
 
 ## 1. Consideraciones generales
 
-La infraestructura y el despliegue del servicio están automatizados con Ansible y Docker.
+La infraestructura y el despliegue del servicio estan automatizados con Ansible y Docker.
 
-La creación de monitores se realiza desde la interfaz web de Uptime Kuma. Estos monitores quedan guardados gracias al volumen persistente definido en el archivo `docker-compose.yml`.
+La creacion de monitores se realiza desde la interfaz web de Uptime Kuma. Estos monitores quedan guardados gracias al volumen persistente definido en `docker/docker-compose.yml`.
 
 ```yaml
 volumes:
@@ -22,29 +27,72 @@ volumes:
 
 Esto permite conservar:
 
-* Usuario administrador.
-* Monitores creados.
-* Configuración del sistema.
-* Historial de eventos.
-* Datos internos de Uptime Kuma.
+- Usuario administrador.
+- Monitores creados.
+- Configuracion del sistema.
+- Historial de eventos.
+- Datos internos de Uptime Kuma.
 
-Por lo tanto, si el contenedor se detiene y se vuelve a iniciar, los monitores no se pierden.
-
-No se debe usar el siguiente comando si se desea conservar la información:
+No se debe usar el siguiente comando si se desea conservar la informacion:
 
 ```bash
 docker compose down -v
 ```
 
-La opción `-v` elimina los volúmenes de Docker y puede borrar la configuración de Uptime Kuma.
+La opcion `-v` elimina los volumenes de Docker y puede borrar la configuracion de Uptime Kuma.
 
 ---
 
-## 2. Obtener la IP pública actual de AWS
+## 2. Servicios disponibles
 
-La IP pública de AWS no debe dejarse fija en la documentación, porque puede cambiar si la instancia EC2 se elimina y se vuelve a crear.
+### 2.1 Uptime Kuma
 
-Para consultar la IP pública actual de la instancia AWS, ejecutar desde la raíz del proyecto:
+Servicio principal para monitoreo de disponibilidad.
+
+```text
+Puerto: 3001
+Contenedor: uptime-kuma
+```
+
+### 2.2 Grafana
+
+Servicio para visualizacion de metricas.
+
+```text
+Puerto: 3000
+Contenedor: grafana
+Usuario inicial: admin
+Clave inicial: admin
+```
+
+Se recomienda cambiar la clave en el primer inicio de sesion.
+
+### 2.3 Prometheus
+
+Servicio para recoleccion y consulta de metricas.
+
+```text
+Puerto: 9090
+Contenedor: prometheus
+```
+
+### 2.4 Node Exporter
+
+Servicio que expone metricas del sistema operativo.
+
+```text
+Puerto: 9100
+Contenedor: node-exporter
+Endpoint: /metrics
+```
+
+---
+
+## 3. Obtener la IP publica actual de AWS
+
+La IP publica de AWS no debe dejarse fija en la documentacion, porque puede cambiar si la instancia EC2 se detiene, se enciende o se vuelve a crear.
+
+Para consultar la IP publica actual de la instancia AWS, ejecutar desde la raiz del proyecto:
 
 ```bash
 cat inventory.ini
@@ -57,56 +105,59 @@ El archivo debe mostrar algo parecido a:
 IP_PUBLICA_AWS ansible_user=ubuntu ansible_ssh_private_key_file=./monitorizacion-key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 ```
 
-También se puede consultar desde AWS CLI con:
+Si la instancia fue encendida de nuevo, actualizar el inventario con:
 
 ```bash
-aws ec2 describe-instances \
-  --region us-east-1 \
-  --filters "Name=tag:Name,Values=monitorizacion-red-uptime-kuma" "Name=instance-state-name,Values=running" \
-  --query "Reservations[*].Instances[*].[InstanceId,PublicIpAddress,State.Name]" \
-  --output table
+./scripts/update_inventory_aws.sh
 ```
 
-En esta guía se usará el valor:
+Tambien se puede encender la instancia y actualizar el inventario en un solo paso:
+
+```bash
+./scripts/start_aws.sh
+```
+
+En esta guia se usara el valor:
 
 ```text
 IP_PUBLICA_AWS
 ```
 
-Este valor debe reemplazarse por la IP pública actual de la instancia EC2.
+Este valor debe reemplazarse por la IP publica actual de la instancia EC2.
 
 ---
 
-## 3. Acceso a Uptime Kuma
+## 4. Acceso a los paneles
 
-### 3.1 Acceso a Uptime Kuma en AWS
-
-Formato general:
+### 4.1 Acceso en AWS
 
 ```text
-http://IP_PUBLICA_AWS:3001
+Uptime Kuma: http://IP_PUBLICA_AWS:3001
+Grafana:     http://IP_PUBLICA_AWS:3000
 ```
 
-Ejemplo:
+En la configuracion actual del Security Group se abre el acceso publico a `22`, `3001` y `3000`.
+
+Prometheus `9090` y Node Exporter `9100` existen en el modulo de metricas, pero no estan abiertos publicamente en el Security Group por defecto. Se usan principalmente desde la propia instancia o desde Grafana/Prometheus dentro de la red Docker.
+
+### 4.2 Acceso local
+
+Desde el mismo equipo donde se ejecutan los servicios:
 
 ```text
-http://<IP_PUBLICA_ACTUAL>:3001
-```
-
----
-
-### 3.2 Acceso a Uptime Kuma local
-
-Desde el mismo equipo donde se ejecuta Uptime Kuma:
-
-```text
-http://localhost:3001
+Uptime Kuma:   http://localhost:3001
+Grafana:       http://localhost:3000
+Prometheus:    http://localhost:9090
+Node Exporter: http://localhost:9100/metrics
 ```
 
 Desde otro equipo conectado a la misma red local:
 
 ```text
-http://IP_DEL_SERVIDOR_LOCAL:3001
+Uptime Kuma:   http://IP_DEL_SERVIDOR_LOCAL:3001
+Grafana:       http://IP_DEL_SERVIDOR_LOCAL:3000
+Prometheus:    http://IP_DEL_SERVIDOR_LOCAL:9090
+Node Exporter: http://IP_DEL_SERVIDOR_LOCAL:9100/metrics
 ```
 
 Para conocer la IP local del servidor:
@@ -117,19 +168,17 @@ hostname -I
 
 ---
 
-## 4. Monitores para AWS
+## 5. Monitores para AWS
 
 Estos monitores se deben crear dentro del Uptime Kuma desplegado en la instancia EC2 de AWS.
 
----
+### 5.1 Monitor: Uptime Kuma AWS
 
-### 4.1 Monitor: Uptime Kuma AWS
-
-#### Propósito
+#### Proposito
 
 Verificar que la interfaz web de Uptime Kuma desplegada en AWS se encuentra disponible desde Internet.
 
-#### Configuración
+#### Configuracion
 
 ```text
 Monitor Type: HTTP(s)
@@ -141,25 +190,39 @@ Retries: 1
 
 #### Resultado esperado
 
-El monitor debe aparecer en estado:
+```text
+Up
+```
+
+### 5.2 Monitor: Grafana AWS
+
+#### Proposito
+
+Verificar que Grafana esta disponible en la instancia AWS.
+
+#### Configuracion
+
+```text
+Monitor Type: HTTP(s)
+Friendly Name: Grafana AWS
+URL: http://IP_PUBLICA_AWS:3000
+Heartbeat Interval: 60
+Retries: 1
+```
+
+#### Resultado esperado
 
 ```text
 Up
 ```
 
-#### Evidencia recomendada
+### 5.3 Monitor: Google DNS
 
-Tomar captura del monitor en estado `Up`.
-
----
-
-### 4.2 Monitor: Google DNS
-
-#### Propósito
+#### Proposito
 
 Validar que la instancia EC2 tiene conectividad hacia Internet.
 
-#### Configuración
+#### Configuracion
 
 ```text
 Monitor Type: Ping
@@ -171,27 +234,17 @@ Retries: 1
 
 #### Resultado esperado
 
-El monitor debe aparecer en estado:
-
 ```text
 Up
 ```
 
-#### Evidencia recomendada
+### 5.4 Monitor: SSH AWS
 
-Tomar captura del monitor en estado `Up`.
+#### Proposito
 
----
+Verificar que el puerto SSH de la instancia EC2 esta disponible. Este puerto es importante porque Ansible lo utiliza para conectarse a la instancia y ejecutar la configuracion remota.
 
-### 4.3 Monitor: SSH AWS
-
-#### Propósito
-
-Verificar que el puerto SSH de la instancia EC2 está disponible.
-
-Este puerto es importante porque Ansible lo utiliza para conectarse a la instancia y ejecutar la configuración remota.
-
-#### Configuración
+#### Configuracion
 
 ```text
 Monitor Type: TCP Port
@@ -204,25 +257,17 @@ Retries: 1
 
 #### Resultado esperado
 
-El monitor debe aparecer en estado:
-
 ```text
 Up
 ```
 
-#### Evidencia recomendada
+### 5.5 Monitor: Sitio Web Externo
 
-Tomar captura del monitor en estado `Up`.
-
----
-
-### 4.4 Monitor: Sitio Web Externo
-
-#### Propósito
+#### Proposito
 
 Validar que la instancia EC2 puede acceder a un servicio web externo mediante HTTP/HTTPS.
 
-#### Configuración
+#### Configuracion
 
 ```text
 Monitor Type: HTTP(s)
@@ -234,31 +279,23 @@ Retries: 1
 
 #### Resultado esperado
 
-El monitor debe aparecer en estado:
-
 ```text
 Up
 ```
 
-#### Evidencia recomendada
-
-Tomar captura del monitor en estado `Up`.
-
 ---
 
-## 5. Monitores para entorno local
+## 6. Monitores para entorno local
 
-Estos monitores se deben crear dentro del Uptime Kuma desplegado localmente en Lubuntu o en el servidor Linux de la red local.
+Estos monitores se deben crear dentro del Uptime Kuma desplegado localmente.
 
----
+### 6.1 Monitor: Uptime Kuma Local
 
-### 5.1 Monitor: Uptime Kuma Local
+#### Proposito
 
-#### Propósito
+Verificar que el servicio Uptime Kuma local esta funcionando correctamente.
 
-Verificar que el servicio Uptime Kuma local está funcionando correctamente.
-
-#### Configuración
+#### Configuracion
 
 ```text
 Monitor Type: HTTP(s)
@@ -270,25 +307,81 @@ Retries: 1
 
 #### Resultado esperado
 
-El monitor debe aparecer en estado:
+```text
+Up
+```
+
+### 6.2 Monitor: Grafana Local
+
+#### Proposito
+
+Verificar que Grafana local esta disponible.
+
+#### Configuracion
+
+```text
+Monitor Type: HTTP(s)
+Friendly Name: Grafana Local
+URL: http://localhost:3000
+Heartbeat Interval: 60
+Retries: 1
+```
+
+#### Resultado esperado
 
 ```text
 Up
 ```
 
-#### Evidencia recomendada
+### 6.3 Monitor: Prometheus Local
 
-Tomar captura del monitor en estado `Up`.
+#### Proposito
 
----
+Verificar que Prometheus local esta disponible.
 
-### 5.2 Monitor: Router Local
+#### Configuracion
 
-#### Propósito
+```text
+Monitor Type: HTTP(s)
+Friendly Name: Prometheus Local
+URL: http://localhost:9090
+Heartbeat Interval: 60
+Retries: 1
+```
+
+#### Resultado esperado
+
+```text
+Up
+```
+
+### 6.4 Monitor: Node Exporter Local
+
+#### Proposito
+
+Verificar que Node Exporter expone metricas del sistema.
+
+#### Configuracion
+
+```text
+Monitor Type: HTTP(s)
+Friendly Name: Node Exporter Local
+URL: http://localhost:9100/metrics
+Heartbeat Interval: 60
+Retries: 1
+```
+
+#### Resultado esperado
+
+```text
+Up
+```
+
+### 6.5 Monitor: Router Local
+
+#### Proposito
 
 Verificar que el router o puerta de enlace de la red local responde correctamente.
-
-Este monitor permite comprobar conectividad básica dentro de la LAN.
 
 Para identificar la IP del router local, ejecutar:
 
@@ -296,7 +389,7 @@ Para identificar la IP del router local, ejecutar:
 ip route
 ```
 
-Buscar la línea que empieza con:
+Buscar la linea que empieza con:
 
 ```text
 default via
@@ -308,7 +401,7 @@ Ejemplo:
 default via 192.168.1.1
 ```
 
-#### Configuración
+#### Configuracion
 
 ```text
 Monitor Type: Ping
@@ -318,37 +411,19 @@ Heartbeat Interval: 60
 Retries: 1
 ```
 
-Ejemplo:
-
-```text
-Monitor Type: Ping
-Friendly Name: Router Local
-Hostname: 192.168.1.1
-Heartbeat Interval: 60
-Retries: 1
-```
-
 #### Resultado esperado
-
-El monitor debe aparecer en estado:
 
 ```text
 Up
 ```
 
-#### Evidencia recomendada
+### 6.6 Monitor: Internet desde red local
 
-Tomar captura del monitor en estado `Up`.
-
----
-
-### 5.3 Monitor: Internet desde red local
-
-#### Propósito
+#### Proposito
 
 Verificar que el servidor local donde se ejecuta Uptime Kuma tiene salida hacia Internet.
 
-#### Configuración
+#### Configuracion
 
 ```text
 Monitor Type: Ping
@@ -360,27 +435,17 @@ Retries: 1
 
 #### Resultado esperado
 
-El monitor debe aparecer en estado:
-
 ```text
 Up
 ```
 
-#### Evidencia recomendada
+### 6.7 Monitor: SSH Servidor Local
 
-Tomar captura del monitor en estado `Up`.
-
----
-
-### 5.4 Monitor: SSH Servidor Local
-
-#### Propósito
+#### Proposito
 
 Verificar si el servidor local tiene disponible el puerto SSH.
 
-Este monitor es útil para validar que el servidor local puede ser administrado remotamente mediante Ansible.
-
-#### Configuración usando localhost
+#### Configuracion usando localhost
 
 ```text
 Monitor Type: TCP Port
@@ -391,7 +456,7 @@ Heartbeat Interval: 60
 Retries: 1
 ```
 
-#### Configuración usando IP local
+#### Configuracion usando IP local
 
 ```text
 Monitor Type: TCP Port
@@ -404,13 +469,13 @@ Retries: 1
 
 #### Resultado esperado
 
-Si SSH está instalado y activo, el monitor debe aparecer en estado:
+Si SSH esta instalado y activo:
 
 ```text
 Up
 ```
 
-Si SSH no está instalado o no está activo, puede aparecer en estado:
+Si SSH no esta instalado o no esta activo, puede aparecer en estado:
 
 ```text
 Down
@@ -418,22 +483,68 @@ Down
 
 ---
 
-## 6. Tabla resumen de monitores
+## 7. Tabla resumen de monitores
 
-| Nombre del monitor       | Tipo     | Entorno | Dirección o host                            | Propósito                                    |
-| ------------------------ | -------- | ------- | ------------------------------------------- | -------------------------------------------- |
-| Uptime Kuma AWS          | HTTP(s)  | AWS     | `http://IP_PUBLICA_AWS:3001`                | Validar acceso web al servicio en AWS        |
-| Google DNS               | Ping     | AWS     | `8.8.8.8`                                   | Validar salida a Internet desde AWS          |
-| SSH AWS                  | TCP Port | AWS     | `IP_PUBLICA_AWS:22`                         | Validar acceso SSH usado por Ansible         |
-| Sitio Web Externo        | HTTP(s)  | AWS     | `https://google.com`                        | Validar conectividad HTTP/HTTPS externa      |
-| Uptime Kuma Local        | HTTP(s)  | Local   | `http://localhost:3001`                     | Validar servicio local                       |
-| Router Local             | Ping     | Local   | `IP_DEL_ROUTER`                             | Validar conectividad con la puerta de enlace |
-| Internet desde red local | Ping     | Local   | `8.8.8.8`                                   | Validar salida a Internet desde la red local |
-| SSH Servidor Local       | TCP Port | Local   | `localhost:22` o `IP_DEL_SERVIDOR_LOCAL:22` | Validar acceso SSH local                     |
+| Nombre del monitor | Tipo | Entorno | Direccion o host | Proposito |
+|---|---|---|---|---|
+| Uptime Kuma AWS | HTTP(s) | AWS | `http://IP_PUBLICA_AWS:3001` | Validar acceso web al servicio en AWS |
+| Grafana AWS | HTTP(s) | AWS | `http://IP_PUBLICA_AWS:3000` | Validar acceso al panel de metricas en AWS |
+| Google DNS | Ping | AWS | `8.8.8.8` | Validar salida a Internet desde AWS |
+| SSH AWS | TCP Port | AWS | `IP_PUBLICA_AWS:22` | Validar acceso SSH usado por Ansible |
+| Sitio Web Externo | HTTP(s) | AWS | `https://google.com` | Validar conectividad HTTP/HTTPS externa |
+| Uptime Kuma Local | HTTP(s) | Local | `http://localhost:3001` | Validar servicio local |
+| Grafana Local | HTTP(s) | Local | `http://localhost:3000` | Validar panel local de metricas |
+| Prometheus Local | HTTP(s) | Local | `http://localhost:9090` | Validar recoleccion local de metricas |
+| Node Exporter Local | HTTP(s) | Local | `http://localhost:9100/metrics` | Validar metricas del sistema local |
+| Router Local | Ping | Local | `IP_DEL_ROUTER` | Validar conectividad con la puerta de enlace |
+| Internet desde red local | Ping | Local | `8.8.8.8` | Validar salida a Internet desde la red local |
+| SSH Servidor Local | TCP Port | Local | `localhost:22` o `IP_DEL_SERVIDOR_LOCAL:22` | Validar acceso SSH local |
 
 ---
 
-## 7. Nota sobre IPs privadas
+## 8. Configuracion de Grafana con Prometheus
+
+Despues de desplegar el modulo de metricas, ingresar a Grafana:
+
+```text
+http://IP_PUBLICA_AWS:3000
+http://localhost:3000
+```
+
+Credenciales iniciales:
+
+```text
+Usuario: admin
+Clave: admin
+```
+
+Agregar Prometheus como fuente de datos:
+
+```text
+Connection URL: http://prometheus:9090
+```
+
+Si se accede desde fuera de Docker o desde el navegador, la URL visible puede ser:
+
+```text
+http://localhost:9090
+http://IP_DEL_SERVIDOR:9090
+```
+
+Para Grafana dentro del mismo `docker-compose-metricas.yml`, la URL recomendada es `http://prometheus:9090`, porque ambos contenedores comparten la red Docker `metricas-net`.
+
+Consultas utiles para probar Prometheus en Grafana:
+
+```promql
+up
+node_cpu_seconds_total
+node_memory_MemAvailable_bytes
+node_filesystem_avail_bytes
+```
+
+---
+
+## 9. Nota sobre IPs privadas
 
 Las direcciones IP privadas como:
 
@@ -445,7 +556,7 @@ Las direcciones IP privadas como:
 
 solo son accesibles dentro de una red privada o local.
 
-Por esta razón, un Uptime Kuma desplegado en AWS no puede monitorear directamente un router local con IP privada, por ejemplo:
+Por esta razon, un Uptime Kuma desplegado en AWS no puede monitorear directamente un router local con IP privada, por ejemplo:
 
 ```text
 192.168.1.1
@@ -455,20 +566,26 @@ Ese monitor debe crearse en el Uptime Kuma local, no en el Uptime Kuma desplegad
 
 ---
 
-## 8. Evidencias recomendadas
+## 10. Evidencias recomendadas
 
-Para el informe técnico se recomienda tomar capturas de:
+Para el informe tecnico se recomienda tomar capturas de:
 
 1. Panel principal de Uptime Kuma en AWS.
 2. Monitor `Uptime Kuma AWS` en estado `Up`.
-3. Monitor `Google DNS` en estado `Up`.
-4. Monitor `SSH AWS` en estado `Up`.
-5. Monitor `Sitio Web Externo` en estado `Up`.
-6. Panel principal de Uptime Kuma local.
-7. Monitor `Uptime Kuma Local` en estado `Up`.
-8. Monitor `Router Local` en estado `Up`.
-9. Monitor `Internet desde red local` en estado `Up`.
-10. Contenedor activo con el comando:
+3. Monitor `Grafana AWS` en estado `Up`.
+4. Monitor `Google DNS` en estado `Up`.
+5. Monitor `SSH AWS` en estado `Up`.
+6. Monitor `Sitio Web Externo` en estado `Up`.
+7. Panel principal de Grafana en AWS.
+8. Fuente de datos Prometheus configurada en Grafana.
+9. Panel principal de Uptime Kuma local.
+10. Monitor `Uptime Kuma Local` en estado `Up`.
+11. Monitor `Grafana Local` en estado `Up`.
+12. Monitor `Prometheus Local` en estado `Up`.
+13. Monitor `Node Exporter Local` en estado `Up`.
+14. Monitor `Router Local` en estado `Up`.
+15. Monitor `Internet desde red local` en estado `Up`.
+16. Contenedores activos con el comando:
 
 ```bash
 sudo docker ps
@@ -476,7 +593,7 @@ sudo docker ps
 
 ---
 
-## 9. Comandos útiles de verificación
+## 11. Comandos utiles de verificacion
 
 Ver contenedores activos:
 
@@ -484,7 +601,7 @@ Ver contenedores activos:
 sudo docker ps
 ```
 
-Ver volúmenes Docker:
+Ver volumenes Docker:
 
 ```bash
 sudo docker volume ls
@@ -502,18 +619,45 @@ Ver la puerta de enlace local:
 ip route
 ```
 
-Ver la IP pública actual de AWS desde el inventario:
+Ver la IP publica actual de AWS desde el inventario:
 
 ```bash
 cat inventory.ini
 ```
 
+Actualizar el inventario AWS:
+
+```bash
+./scripts/update_inventory_aws.sh
+```
+
+Encender la instancia AWS:
+
+```bash
+./scripts/start_aws.sh
+```
+
+Apagar la instancia AWS:
+
+```bash
+./scripts/stop_aws.sh
+```
+
+Ver logs de los contenedores:
+
+```bash
+sudo docker logs uptime-kuma
+sudo docker logs grafana
+sudo docker logs prometheus
+sudo docker logs node-exporter
+```
+
 ---
 
-## 10. Conclusión
+## 12. Conclusiones
 
-La creación de estos monitores permite demostrar que el sistema de monitorización funciona tanto en AWS como en el entorno local.
+La creacion de estos monitores permite demostrar que el sistema de monitorizacion funciona tanto en AWS como en el entorno local.
 
-En AWS se valida el acceso público al servicio, el puerto SSH y la conectividad externa. En el entorno local se valida el funcionamiento del servicio, la conectividad con el router y la salida a Internet.
+En AWS se valida el acceso publico a Uptime Kuma, Grafana, SSH y conectividad externa. En el entorno local se valida el funcionamiento de Uptime Kuma, Grafana, Prometheus, Node Exporter, el router local y la salida a Internet.
 
-Esta configuración demuestra que Uptime Kuma puede ser utilizado como una herramienta ligera, sencilla y funcional para monitorear servicios, nodos y conectividad en escenarios cloud y redes comunitarias.
+Esta configuracion demuestra que Uptime Kuma puede utilizarse como una herramienta ligera para disponibilidad, mientras que Prometheus, Node Exporter y Grafana complementan el proyecto con recoleccion y visualizacion de metricas del sistema.

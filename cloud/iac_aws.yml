@@ -27,7 +27,7 @@
       debug:
         msg: "AMI seleccionada: {{ ubuntu_ami.image_id }}"
 
-    - name: Crear Security Group para SSH y Uptime Kuma
+    - name: Crear Security Group para SSH, Uptime Kuma y Grafana
       amazon.aws.ec2_security_group:
         name: "{{ security_group_name }}"
         description: "Security Group para proyecto de monitorizacion de red"
@@ -48,6 +48,12 @@
             to_port: 3001
             cidr_ip: "{{ allowed_web_cidr }}"
             rule_desc: Permitir acceso web a Uptime Kuma
+
+          - proto: tcp
+            from_port: 3000
+            to_port: 3000
+            cidr_ip: "{{ allowed_grafana_cidr }}"
+            rule_desc: Permitir acceso web a Grafana
         rules_egress:
           - proto: all
             cidr_ip: 0.0.0.0/0

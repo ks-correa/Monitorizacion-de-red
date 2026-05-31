@@ -1,0 +1,70 @@
+---
+- name: Desplegar modulo de metricas en instancia EC2 AWS
+  hosts: aws
+  gather_facts: no
+
+  tasks:
+    - name: Esperar conexion SSH con la instancia
+      wait_for_connection:
+        timeout: 300
+        delay: 10
+
+    - name: Recolectar informacion del sistema
+      setup:
+
+    - name: Actualizar cache de paquetes
+      become: yes
+      apt:
+        update_cache: yes
+
+    - name: Instalar Docker y Docker Compose
+      become: yes
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+        state: present
+
+    - name: Iniciar y habilitar Docker
+      become: yes
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Crear directorio para modulo de metricas
+      become: yes
+      file:
+        path: /opt/metricas
+        state: directory
+        mode: '0755'
+
+    - name: Copiar archivo docker-compose-metricas.yml
+      become: yes
+      copy:
+        src: ../metricas/docker-compose-metricas.yml
+        dest: /opt/metricas/docker-compose-metricas.yml
+        mode: '0644'
+
+    - name: Copiar archivo prometheus.yml
+      become: yes
+      copy:
+        src: ../metricas/prometheus.yml
+        dest: /opt/metricas/prometheus.yml
+        mode: '0644'
+
+    - name: Levantar contenedores de metricas
+      become: yes
+      command: docker-compose -f docker-compose-metricas.yml up -d
+      args:
+        chdir: /opt/metricas
+
+    - name: Verificar contenedores activos
+      become: yes
+      command: docker ps
+      register: contenedores
+      changed_when: false
+
+    - name: Mostrar contenedores activos
+      debug:
+        var: contenedores.stdout_lines

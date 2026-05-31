@@ -1,18 +1,26 @@
 # Proyecto Final - Monitorizacion de Red
 
-Plataforma de monitorizacion basada en **Uptime Kuma**, desplegada con **Docker** y automatizada con **Ansible**. El proyecto permite levantar el servicio en dos escenarios:
+Plataforma de monitorizacion desplegada con **Ansible** y **Docker**. El proyecto permite levantar servicios de disponibilidad y metricas en dos escenarios:
 
 1. **AWS EC2**, para exponer un panel de monitorizacion accesible por IP publica.
-2. **Entorno local Linux**, para monitorear conectividad dentro de una red local o comunitaria.
+2. **Entorno local Linux**, para monitorear conectividad y metricas dentro de una red local o comunitaria.
 
-El objetivo es validar disponibilidad de servicios, nodos, puertos, salida a Internet y acceso SSH desde una interfaz web sencilla.
+El proyecto integra:
+
+- **Uptime Kuma**, para monitoreo de disponibilidad mediante HTTP, TCP y Ping.
+- **Prometheus**, para recoleccion de metricas.
+- **Node Exporter**, para exponer metricas del servidor.
+- **Grafana**, para visualizar metricas en tableros.
 
 ## Servicio seleccionado
 
 - **Servicio:** 7 - Monitorizacion de red
-- **Herramienta:** Uptime Kuma
-- **Puerto web:** `3001`
-- **Imagen Docker:** `louislam/uptime-kuma:1`
+- **Monitor de disponibilidad:** Uptime Kuma
+- **Modulo de metricas:** Prometheus + Node Exporter + Grafana
+- **Puerto Uptime Kuma:** `3001`
+- **Puerto Grafana:** `3000`
+- **Puerto Prometheus:** `9090`
+- **Puerto Node Exporter:** `9100`
 
 ## Arquitectura general
 
@@ -22,14 +30,19 @@ El objetivo es validar disponibilidad de servicios, nodos, puertos, salida a Int
                   | Navegador web                |
                   +---------------+--------------+
                                   |
-                                  | HTTP :3001
-                                  |
-        +-------------------------+-------------------------+
+                    +-------------+-------------+
+                    |                           |
+                    | HTTP :3001                | HTTP :3000
+                    | Uptime Kuma               | Grafana
+                    |                           |
+        +-----------v---------------------------v-----------+
         |                                                   |
 +-------v----------------+                         +--------v---------------+
 | AWS EC2 Ubuntu 22.04   |                         | Servidor local Linux   |
 | Docker + Uptime Kuma   |                         | Docker + Uptime Kuma   |
-| Security Group 22/3001 |                         | Red local/comunitaria  |
+| Prometheus + Grafana   |                         | Prometheus + Grafana   |
+| Node Exporter          |                         | Node Exporter          |
+| SG 22/3001/3000        |                         | Red local/comunitaria  |
 +------------------------+                         +------------------------+
 ```
 
@@ -44,6 +57,9 @@ El objetivo es validar disponibilidad de servicios, nodos, puertos, salida a Int
 - SSH
 - HTTP, TCP y Ping
 - Uptime Kuma
+- Prometheus
+- Node Exporter
+- Grafana
 
 ## Estructura del proyecto
 
@@ -54,6 +70,7 @@ El objetivo es validar disponibilidad de servicios, nodos, puertos, salida a Int
 |-- cloud/
 |   |-- iac_aws.yml
 |   |-- desplegar_kuma_aws.yml
+|   |-- desplegar_metricas_aws.yml
 |   `-- variables_aws.yml
 |-- docker/
 |   `-- docker-compose.yml
@@ -61,13 +78,20 @@ El objetivo es validar disponibilidad de servicios, nodos, puertos, salida a Int
 |   `-- monitores.md
 |-- local/
 |   |-- desplegar_local.yml
+|   |-- desplegar_metricas_local.yml
 |   `-- inventory_local.ini
-|-- scripts/
-|   |-- deploy_aws.sh
-|   |-- deploy_local.sh
-|   `-- destroy_aws.sh
-|-- diagramas/
-`-- evidencias/
+|-- metricas/
+|   |-- docker-compose-metricas.yml
+|   `-- prometheus.yml
+`-- scripts/
+    |-- deploy_aws.sh
+    |-- deploy_local.sh
+    |-- deploy_metricas_aws.sh
+    |-- deploy_metricas_local.sh
+    |-- destroy_aws.sh
+    |-- start_aws.sh
+    |-- stop_aws.sh
+    `-- update_inventory_aws.sh
 ```
 
 ## Requisitos
@@ -76,12 +100,14 @@ El objetivo es validar disponibilidad de servicios, nodos, puertos, salida a Int
 
 - Linux o WSL.
 - Ansible instalado.
-- Acceso a `sudo` para instalar Docker en el despliegue local.
-- Puerto `3001` disponible en el servidor donde se despliegue Uptime Kuma.
+- Docker disponible en el servidor destino o permisos `sudo` para instalarlo.
+- Puerto `3001` disponible para Uptime Kuma.
+- Puerto `3000` disponible para Grafana.
+- Puertos `9090` y `9100` disponibles si se desea consultar Prometheus o Node Exporter directamente.
 
 ### Requisitos para AWS
 
-- Cuenta de AWS con permisos para crear EC2 y Security Groups.
+- Cuenta de AWS con permisos para crear y administrar EC2 y Security Groups.
 - AWS CLI configurado con credenciales validas.
 - Coleccion de Ansible para AWS:
 
@@ -101,7 +127,7 @@ monitorizacion-key
 monitorizacion-key.pem
 ```
 
-> Nota: la llave `.pem` no debe subirse al repositorio. El archivo `.gitignore` ya excluye llaves privadas.
+> Nota: la llave `.pem` no debe subirse al repositorio.
 
 ## Configuracion principal
 
@@ -111,24 +137,25 @@ Las variables de AWS se encuentran en:
 cloud/variables_aws.yml
 ```
 
-Valores principales:
+Valores actuales principales:
 
 ```yaml
 aws_region: us-east-1
-instance_type: t3.micro
+instance_type: t3.small
 key_name: monitorizacion-key
 security_group_name: monitorizacion-red-sg
 instance_name: monitorizacion-red-uptime-kuma
 vpc_id: vpc-055c82200f460c027
 allowed_ssh_cidr: 0.0.0.0/0
 allowed_web_cidr: 0.0.0.0/0
+allowed_grafana_cidr: 0.0.0.0/0
 ```
 
-Para un entorno real, se recomienda restringir `allowed_ssh_cidr` y `allowed_web_cidr` a una IP o red conocida.
+Para un entorno real, se recomienda restringir `allowed_ssh_cidr`, `allowed_web_cidr` y `allowed_grafana_cidr` a una IP o red conocida.
 
 ## Despliegue en AWS
 
-El despliegue completo se ejecuta con:
+El despliegue base en AWS se ejecuta con:
 
 ```bash
 ./scripts/deploy_aws.sh
@@ -136,9 +163,10 @@ El despliegue completo se ejecuta con:
 
 Este script realiza dos fases:
 
-1. Ejecuta `cloud/iac_aws.yml` para crear la infraestructura:
+1. Ejecuta `cloud/iac_aws.yml` para crear o actualizar la infraestructura:
    - Busca la AMI mas reciente de Ubuntu Server 22.04.
    - Crea o actualiza el Security Group.
+   - Permite SSH `22`, Uptime Kuma `3001` y Grafana `3000`.
    - Crea la instancia EC2.
    - Genera `inventory.ini` con la IP publica de la instancia.
 
@@ -146,18 +174,79 @@ Este script realiza dos fases:
    - Espera la conexion SSH.
    - Instala Docker y Docker Compose.
    - Copia `docker/docker-compose.yml` a `/opt/uptime-kuma`.
-   - Inicia el contenedor.
-
-Cuando finalice, consulta la IP publica generada:
-
-```bash
-cat inventory.ini
-```
+   - Inicia el contenedor `uptime-kuma`.
 
 Acceso esperado:
 
 ```text
 http://IP_PUBLICA_AWS:3001
+```
+
+## Despliegue de metricas en AWS
+
+Una vez creada y encendida la instancia AWS, el modulo de metricas se despliega con:
+
+```bash
+./scripts/deploy_metricas_aws.sh
+```
+
+Este script ejecuta `cloud/desplegar_metricas_aws.yml`, que:
+
+- Instala Docker y Docker Compose si es necesario.
+- Crea `/opt/metricas`.
+- Copia `metricas/docker-compose-metricas.yml`.
+- Copia `metricas/prometheus.yml`.
+- Levanta los contenedores `prometheus`, `node-exporter` y `grafana`.
+
+Acceso publico esperado:
+
+```text
+Grafana: http://IP_PUBLICA_AWS:3000
+```
+
+En la configuracion actual de AWS solo se abre publicamente Grafana en el Security Group. Prometheus `9090` y Node Exporter `9100` quedan pensados principalmente para comunicacion interna entre contenedores o consulta desde la instancia.
+
+Credenciales iniciales de Grafana:
+
+```text
+Usuario: admin
+Clave: admin
+```
+
+Se recomienda cambiar la clave en el primer inicio de sesion.
+
+## Administracion de la instancia AWS
+
+Para apagar la instancia sin destruirla:
+
+```bash
+./scripts/stop_aws.sh
+```
+
+Para encender una instancia detenida:
+
+```bash
+./scripts/start_aws.sh
+```
+
+Al encenderla, la IP publica puede cambiar. Por eso `start_aws.sh` llama a:
+
+```bash
+./scripts/update_inventory_aws.sh
+```
+
+Tambien se puede ejecutar manualmente para regenerar `inventory.ini` con la IP publica actual.
+
+Para consultar la IP usada por Ansible:
+
+```bash
+cat inventory.ini
+```
+
+Conexion SSH:
+
+```bash
+ssh -i monitorizacion-key.pem ubuntu@IP_PUBLICA_AWS
 ```
 
 ## Despliegue local
@@ -168,7 +257,7 @@ El despliegue local usa el inventario:
 local/inventory_local.ini
 ```
 
-Ejecutar:
+Para desplegar Uptime Kuma:
 
 ```bash
 ./scripts/deploy_local.sh
@@ -179,8 +268,8 @@ Este proceso:
 - Instala Docker si no esta instalado.
 - Verifica Docker Compose.
 - Crea `/opt/uptime-kuma`.
-- Copia el archivo `docker/docker-compose.yml`.
-- Levanta el contenedor de Uptime Kuma.
+- Copia `docker/docker-compose.yml`.
+- Levanta el contenedor `uptime-kuma`.
 
 Acceso desde el mismo equipo:
 
@@ -200,24 +289,83 @@ Para consultar la IP local:
 hostname -I
 ```
 
+## Despliegue de metricas local
+
+Para desplegar Prometheus, Node Exporter y Grafana en el entorno local:
+
+```bash
+./scripts/deploy_metricas_local.sh
+```
+
+Este proceso:
+
+- Instala Docker si no esta instalado.
+- Verifica Docker Compose.
+- Crea `/opt/metricas`.
+- Copia la configuracion de metricas.
+- Levanta `prometheus`, `node-exporter` y `grafana`.
+
+Accesos locales:
+
+```text
+Grafana:       http://localhost:3000
+Prometheus:    http://localhost:9090
+Node Exporter: http://localhost:9100/metrics
+```
+
+Credenciales iniciales de Grafana:
+
+```text
+Usuario: admin
+Clave: admin
+```
+
+## Configuracion de Prometheus
+
+La configuracion esta en:
+
+```text
+metricas/prometheus.yml
+```
+
+Prometheus recolecta metricas cada 15 segundos:
+
+```yaml
+global:
+  scrape_interval: 15s
+```
+
+Objetivos configurados:
+
+| Job | Target |
+|---|---|
+| prometheus | `prometheus:9090` |
+| node-exporter | `node-exporter:9100` |
+
 ## Verificacion del servicio
 
-En el servidor donde se desplego Uptime Kuma:
+En el servidor donde se desplegaron los servicios:
 
 ```bash
 sudo docker ps
 ```
 
-Tambien se puede revisar el archivo Compose usado por el proyecto:
-
-```bash
-cat docker/docker-compose.yml
-```
-
-El contenedor esperado es:
+Contenedores esperados segun el despliegue realizado:
 
 ```text
 uptime-kuma
+prometheus
+node-exporter
+grafana
+```
+
+Logs utiles:
+
+```bash
+sudo docker logs uptime-kuma
+sudo docker logs prometheus
+sudo docker logs node-exporter
+sudo docker logs grafana
 ```
 
 ## Monitores recomendados
@@ -233,6 +381,7 @@ Resumen de monitores para AWS:
 | Monitor | Tipo | Destino |
 |---|---|---|
 | Uptime Kuma AWS | HTTP(s) | `http://IP_PUBLICA_AWS:3001` |
+| Grafana AWS | HTTP(s) | `http://IP_PUBLICA_AWS:3000` |
 | Google DNS | Ping | `8.8.8.8` |
 | SSH AWS | TCP Port | `IP_PUBLICA_AWS:22` |
 | Sitio Web Externo | HTTP(s) | `https://google.com` |
@@ -242,6 +391,9 @@ Resumen de monitores locales:
 | Monitor | Tipo | Destino |
 |---|---|---|
 | Uptime Kuma Local | HTTP(s) | `http://localhost:3001` |
+| Grafana Local | HTTP(s) | `http://localhost:3000` |
+| Prometheus Local | HTTP(s) | `http://localhost:9090` |
+| Node Exporter Local | HTTP(s) | `http://localhost:9100/metrics` |
 | Router Local | Ping | `IP_DEL_ROUTER` |
 | Internet desde red local | Ping | `8.8.8.8` |
 | SSH Servidor Local | TCP Port | `localhost:22` |
@@ -253,67 +405,6 @@ Heartbeat Interval: 60
 Retries: 1
 ```
 
-## Conexion SSH y administracion de Kuma en AWS
-
-Despues de crear los monitores, el administrador puede conectarse por SSH a la instancia EC2 donde esta desplegado Uptime Kuma. Desde la raiz del proyecto se debe ejecutar:
-
-```bash
-cd ~/Desktop/Monitorizacion-de-red
-ssh -i monitorizacion-key.pem ubuntu@IP_PUBLICA_AWS
-```
-
-Si la IP publica actual es `32.199.138.197`, el comando seria:
-
-```bash
-ssh -i monitorizacion-key.pem ubuntu@32.199.138.197
-```
-
-Una vez dentro de la instancia, se puede verificar que Uptime Kuma este en ejecucion con:
-
-```bash
-sudo docker ps
-```
-
-Debe aparecer el contenedor:
-
-```text
-uptime-kuma
-```
-
-Tambien se pueden consultar los logs del contenedor:
-
-```bash
-sudo docker logs uptime-kuma
-```
-
-Comandos utiles de administracion:
-
-```bash
-sudo docker restart uptime-kuma
-sudo docker stop uptime-kuma
-sudo docker start uptime-kuma
-```
-
-El acceso a la interfaz web de Uptime Kuma no se realiza por SSH, sino desde el navegador:
-
-```text
-http://IP_PUBLICA_AWS:3001
-```
-
-Ejemplo:
-
-```text
-http://32.199.138.197:3001
-```
-
-Si no se recuerda la IP publica actual, se puede revisar el inventario generado por Ansible:
-
-```bash
-cat inventory.ini
-```
-
-En ese archivo aparece la IP que Ansible esta usando para conectarse a la instancia.
-
 ## Persistencia de datos
 
 Uptime Kuma conserva usuarios, monitores, configuracion e historial mediante el volumen Docker definido en `docker/docker-compose.yml`:
@@ -323,11 +414,21 @@ volumes:
   - uptime-kuma-data:/app/data
 ```
 
-Comandos seguros para detener o iniciar sin borrar datos:
+El modulo de metricas conserva datos mediante los volumenes definidos en `metricas/docker-compose-metricas.yml`:
+
+```yaml
+volumes:
+  prometheus-data:
+  grafana-data:
+```
+
+Comandos seguros para detener o iniciar contenedores sin borrar datos:
 
 ```bash
 sudo docker stop uptime-kuma
 sudo docker start uptime-kuma
+sudo docker stop grafana prometheus node-exporter
+sudo docker start grafana prometheus node-exporter
 ```
 
 Evitar este comando si se quiere conservar la configuracion:
@@ -336,7 +437,7 @@ Evitar este comando si se quiere conservar la configuracion:
 docker compose down -v
 ```
 
-La opcion `-v` elimina volumenes y puede borrar los datos de Uptime Kuma.
+La opcion `-v` elimina volumenes y puede borrar datos de Uptime Kuma, Prometheus o Grafana.
 
 ## Eliminacion de recursos AWS
 
@@ -354,4 +455,4 @@ El script busca los recursos por:
 
 ## Resultado esperado
 
-Al finalizar el despliegue, se obtiene una instancia de Uptime Kuma funcionando en Docker, accesible por navegador y lista para crear monitores de disponibilidad. La solucion demuestra automatizacion de infraestructura, despliegue de servicios y monitorizacion basica tanto en nube como en red local.
+Al finalizar el despliegue, se obtiene una plataforma de monitorizacion en Docker con Uptime Kuma para disponibilidad y Grafana/Prometheus/Node Exporter para metricas. La solucion demuestra automatizacion de infraestructura, despliegue de servicios y monitorizacion basica tanto en nube como en red local.
