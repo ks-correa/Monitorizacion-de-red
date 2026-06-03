@@ -3,7 +3,18 @@
   hosts: local
   become: yes
 
+  vars_files:
+    - ../cloud/variables_aws.yml
+
   tasks:
+    - name: Crear directorio local para secretos
+      delegate_to: localhost
+      become: no
+      file:
+        path: "{{ playbook_dir }}/../{{ grafana_password_file | dirname }}"
+        state: directory
+        mode: '0700'
+
     - name: Actualizar cache de paquetes
       apt:
         update_cache: yes
@@ -47,10 +58,32 @@
         dest: /opt/metricas/prometheus.yml
         mode: '0644'
 
+    - name: Crear archivo de entorno seguro para Grafana
+      copy:
+        dest: /opt/metricas/.env
+        mode: '0600'
+        content: |
+          GF_SECURITY_ADMIN_USER={{ grafana_admin_user }}
+          GF_SECURITY_ADMIN_PASSWORD={{ lookup('password', playbook_dir + '/../' + grafana_password_file + ' length=24 chars=ascii_letters,digits') }}
+      no_log: true
+
+    - name: Eliminar contenedores anteriores de metricas conservando volumenes
+      shell: |
+        docker rm -f prometheus node-exporter grafana >/dev/null 2>&1 || true
+        docker ps -aq --filter "label=com.docker.compose.project=metricas" | xargs -r docker rm -f
+      register: contenedores_metricas_eliminados
+      changed_when: contenedores_metricas_eliminados.stdout | length > 0
+
     - name: Levantar contenedores de metricas
       command: docker compose -f docker-compose-metricas.yml up -d
       args:
         chdir: /opt/metricas
+
+    - name: Aplicar clave segura al usuario administrador de Grafana
+      command: >
+        docker exec grafana grafana cli admin reset-admin-password
+        {{ lookup('password', playbook_dir + '/../' + grafana_password_file + ' length=24 chars=ascii_letters,digits') }}
+      no_log: true
 
     - name: Verificar contenedores activos
       command: docker ps

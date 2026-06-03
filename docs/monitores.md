@@ -61,11 +61,11 @@ Servicio para visualizacion de metricas.
 ```text
 Puerto: 3000
 Contenedor: grafana
-Usuario inicial: admin
-Clave inicial: admin
+Usuario: definido en `grafana_admin_user`
+Clave: generada en `.secrets/grafana_admin_password`
 ```
 
-Se recomienda cambiar la clave en el primer inicio de sesion.
+La clave no se almacena en archivos versionados y se copia al servidor mediante `/opt/metricas/.env`.
 
 ### 2.3 Prometheus
 
@@ -102,7 +102,7 @@ El archivo debe mostrar algo parecido a:
 
 ```ini
 [aws]
-IP_PUBLICA_AWS ansible_user=ubuntu ansible_ssh_private_key_file=./monitorizacion-key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+IP_PUBLICA_AWS ansible_user=ubuntu ansible_ssh_private_key_file=./monitorizacion-key.pem
 ```
 
 Si la instancia fue encendida de nuevo, actualizar el inventario con:
@@ -136,7 +136,7 @@ Uptime Kuma: http://IP_PUBLICA_AWS:3001
 Grafana:     http://IP_PUBLICA_AWS:3000
 ```
 
-En la configuracion actual del Security Group se abre el acceso publico a `22`, `3001` y `3000`.
+Durante la configuracion inicial se puede abrir temporalmente el acceso a `22`, `3001` y `3000` para validar el despliegue. Despues de la configuracion, el Security Group debe quedar limitado al CIDR administrativo definido en `cloud/variables_aws.yml`; si `admin_public_cidr` esta en `auto`, Ansible detecta la IP publica actual del administrador y la aplica como `/32`.
 
 Prometheus `9090` y Node Exporter `9100` existen en el modulo de metricas, pero no estan abiertos publicamente en el Security Group por defecto. Se usan principalmente desde la propia instancia o desde Grafana/Prometheus dentro de la red Docker.
 
@@ -514,8 +514,8 @@ http://localhost:3000
 Credenciales iniciales:
 
 ```text
-Usuario: admin
-Clave: admin
+Usuario: definido en `grafana_admin_user`
+Clave: generada en `.secrets/grafana_admin_password`
 ```
 
 Agregar Prometheus como fuente de datos:

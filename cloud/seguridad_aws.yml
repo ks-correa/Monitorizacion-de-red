@@ -1,0 +1,61 @@
+---
+- name: Actualizar reglas seguras del Security Group AWS
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+    - variables_aws.yml
+
+  tasks:
+    - name: Detectar IP publica del administrador
+      uri:
+        url: https://checkip.amazonaws.com
+        return_content: yes
+      register: detected_admin_public_ip
+      changed_when: false
+      when: admin_public_cidr == "auto"
+
+    - name: Definir CIDR administrativo efectivo
+      set_fact:
+        effective_admin_cidr: >-
+          {{
+            (detected_admin_public_ip.content | trim ~ '/32')
+            if admin_public_cidr == 'auto'
+            else admin_public_cidr
+          }}
+
+    - name: Actualizar Security Group con acceso limitado
+      amazon.aws.ec2_security_group:
+        name: "{{ security_group_name }}"
+        description: "Security Group para proyecto de monitorizacion de red"
+        region: "{{ aws_region }}"
+        vpc_id: "{{ vpc_id }}"
+        state: present
+        purge_rules: true
+        purge_rules_egress: true
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: "{{ allowed_ssh_cidr }}"
+            rule_desc: Permitir SSH solo desde administracion
+
+          - proto: tcp
+            from_port: 3001
+            to_port: 3001
+            cidr_ip: "{{ allowed_web_cidr }}"
+            rule_desc: Permitir Uptime Kuma solo desde administracion
+
+          - proto: tcp
+            from_port: 3000
+            to_port: 3000
+            cidr_ip: "{{ allowed_grafana_cidr }}"
+            rule_desc: Permitir Grafana solo desde administracion
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+
+    - name: Mostrar CIDR aplicado
+      debug:
+        msg: "Security Group actualizado. Acceso permitido desde {{ effective_admin_cidr }}"
