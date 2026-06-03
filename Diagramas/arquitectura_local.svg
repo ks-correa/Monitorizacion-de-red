@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 730" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#5a7fa8"/>
+    </marker>
+    <marker id="arrow-dark" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#3a5070"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c07a2e"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4a8c6f"/>
+    </marker>
+    <filter id="shadow">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#00000018"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="730" fill="#f4f7fa"/>
+
+  <!-- Title bar -->
+  <rect x="0" y="0" width="1000" height="52" fill="#1e3a5f"/>
+  <text x="500" y="32" text-anchor="middle" font-size="17" font-weight="bold" fill="white" letter-spacing="0.5">ARQUITECTURA EN ENTORNO LOCAL — LUBUNTU</text>
+
+  <!-- ===== LOCAL NETWORK OUTER BOX ===== -->
+  <g filter="url(#shadow)">
+    <rect x="18" y="68" width="962" height="594" rx="14" fill="#f0f4f8" stroke="#5080a8" stroke-width="2"/>
+  </g>
+  <text x="499" y="88" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a5f">Red Local</text>
+
+  <!-- ===== ROUTER / GATEWAY ===== -->
+  <g filter="url(#shadow)">
+    <rect x="38" y="100" width="180" height="110" rx="10" fill="#e8f0fa" stroke="#5a7fa8" stroke-width="1.8"/>
+  </g>
+  <rect x="38" y="100" width="180" height="26" rx="10" fill="#5a7fa8"/>
+  <rect x="38" y="118" width="180" height="8" fill="#5a7fa8"/>
+  <text x="128" y="116" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Router / Gateway</text>
+  <!-- Router icon simple -->
+  <rect x="68" y="140" width="120" height="20" rx="4" fill="#c0d4ea" stroke="#8aaac8" stroke-width="1"/>
+  <circle cx="82" cy="150" r="5" fill="#5a7fa8"/>
+  <circle cx="98" cy="150" r="5" fill="#5a7fa8"/>
+  <circle cx="114" cy="150" r="5" fill="#4a9060"/>
+  <text x="128" y="175" text-anchor="middle" font-size="10.5" fill="#2a4060">OpenWrt / Cisco</text>
+  <text x="128" y="189" text-anchor="middle" font-size="10" fill="#5a7090">(equipamiento de red)</text>
+  <text x="128" y="203" text-anchor="middle" font-size="10" fill="#5a7090">Punto de acceso local</text>
+
+  <!-- ===== USER IN LOCAL NETWORK ===== -->
+  <g filter="url(#shadow)">
+    <rect x="38" y="240" width="180" height="90" rx="8" fill="#dce8f5" stroke="#5a7fa8" stroke-width="1.5"/>
+  </g>
+  <circle cx="128" cy="264" r="14" fill="#5a7fa8"/>
+  <rect x="105" y="281" width="46" height="20" rx="6" fill="#5a7fa8"/>
+  <text x="128" y="314" text-anchor="middle" font-size="11" fill="#1e3a5f" font-weight="bold">Usuario Local</text>
+  <text x="128" y="327" text-anchor="middle" font-size="10" fill="#3a5880">Red interna</text>
+
+  <!-- Arrows Router ↔ Lubuntu Server -->
+  <line x1="218" y1="142" x2="355" y2="180" stroke="#5a7fa8" stroke-width="1.4" marker-end="url(#arrow)" stroke-dasharray="5,3"/>
+  <text x="275" y="152" text-anchor="middle" font-size="9" fill="#5a7fa8">tráfico red</text>
+
+  <!-- Arrow User → Lubuntu Server -->
+  <line x1="218" y1="285" x2="355" y2="285" stroke="#5a7fa8" stroke-width="1.4" marker-end="url(#arrow)" stroke-dasharray="5,3"/>
+  <text x="282" y="278" text-anchor="middle" font-size="9" fill="#5a7fa8">acceso web</text>
+
+  <!-- ===== LUBUNTU SERVER BOX ===== -->
+  <g filter="url(#shadow)">
+    <rect x="355" y="100" width="607" height="545" rx="12" fill="#edf3f8" stroke="#3a6a90" stroke-width="2"/>
+  </g>
+  <text x="658" y="122" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a5f">Servidor Lubuntu</text>
+  <text x="658" y="137" text-anchor="middle" font-size="10" fill="#3a5870">(Sistema operativo Linux — entorno de escritorio ligero)</text>
+
+  <!-- DOCKER COMPOSE box inside Lubuntu -->
+  <rect x="372" y="148" width="572" height="482" rx="10" fill="#e0ecf4" stroke="#3a6a90" stroke-width="1.2" stroke-dasharray="6,3"/>
+  <text x="658" y="168" text-anchor="middle" font-size="11" font-weight="600" fill="#2a4a6a">Docker / Docker Compose</text>
+
+  <!-- Uptime Kuma -->
+  <g filter="url(#shadow)">
+    <rect x="388" y="180" width="220" height="102" rx="8" fill="white" stroke="#4a8ec4" stroke-width="1.8"/>
+  </g>
+  <rect x="388" y="180" width="220" height="26" rx="8" fill="#4a8ec4"/>
+  <rect x="388" y="199" width="220" height="7" fill="#4a8ec4"/>
+  <text x="498" y="196" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Uptime Kuma</text>
+  <text x="498" y="221" text-anchor="middle" font-size="10" fill="#1a3a5a">Monitorización de disponibilidad</text>
+  <text x="498" y="235" text-anchor="middle" font-size="10" fill="#1a3a5a">de servicios y puertos locales</text>
+  <text x="498" y="252" text-anchor="middle" font-size="9.5" fill="#607090">Puerto LAN: 3001</text>
+  <text x="498" y="266" text-anchor="middle" font-size="9.5" fill="#607090">Estado en tiempo real y alertas</text>
+
+  <!-- Prometheus -->
+  <g filter="url(#shadow)">
+    <rect x="728" y="180" width="196" height="102" rx="8" fill="white" stroke="#c07a2e" stroke-width="1.8"/>
+  </g>
+  <rect x="728" y="180" width="196" height="26" rx="8" fill="#c07a2e"/>
+  <rect x="728" y="199" width="196" height="7" fill="#c07a2e"/>
+  <text x="826" y="196" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Prometheus</text>
+  <text x="826" y="221" text-anchor="middle" font-size="10" fill="#3a2000">Recolección y almacenamiento</text>
+  <text x="826" y="235" text-anchor="middle" font-size="10" fill="#3a2000">de métricas (time-series)</text>
+  <text x="826" y="252" text-anchor="middle" font-size="9.5" fill="#6a5030">Puerto local: 9090</text>
+  <text x="826" y="266" text-anchor="middle" font-size="9.5" fill="#6a5030">Scraping de Node Exporter</text>
+
+  <!-- Node Exporter -->
+  <g filter="url(#shadow)">
+    <rect x="558" y="310" width="200" height="102" rx="8" fill="white" stroke="#5a9a70" stroke-width="1.8"/>
+  </g>
+  <rect x="558" y="310" width="200" height="26" rx="8" fill="#5a9a70"/>
+  <rect x="558" y="329" width="200" height="7" fill="#5a9a70"/>
+  <text x="658" y="326" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Node Exporter</text>
+  <text x="658" y="350" text-anchor="middle" font-size="10" fill="#1a3a20">Métricas del servidor Lubuntu</text>
+  <text x="658" y="364" text-anchor="middle" font-size="10" fill="#1a3a20">CPU · RAM · Disco · Red</text>
+  <text x="658" y="380" text-anchor="middle" font-size="9.5" fill="#3a6045">Procesos · Uptime del sistema</text>
+  <text x="658" y="394" text-anchor="middle" font-size="9.5" fill="#3a6045">Puerto local: 9100</text>
+
+  <!-- Grafana -->
+  <g filter="url(#shadow)">
+    <rect x="388" y="440" width="536" height="90" rx="8" fill="white" stroke="#e05a20" stroke-width="1.8"/>
+  </g>
+  <rect x="388" y="440" width="536" height="26" rx="8" fill="#e05a20"/>
+  <rect x="388" y="459" width="536" height="7" fill="#e05a20"/>
+  <text x="656" y="456" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Grafana</text>
+  <text x="656" y="480" text-anchor="middle" font-size="10" fill="#3a1a00">Visualización de métricas mediante dashboards interactivos</text>
+  <text x="656" y="494" text-anchor="middle" font-size="10" fill="#3a1a00">Fuente de datos: Prometheus · Puerto LAN: 3000</text>
+  <text x="656" y="510" text-anchor="middle" font-size="9.5" fill="#6a3010">Paneles personalizables para monitorización continua del servidor y la red</text>
+  <text x="656" y="523" text-anchor="middle" font-size="9.5" fill="#6a3010">Útil en entornos con conectividad limitada · Opera sin acceso a Internet</text>
+
+  <!-- Arrows inside Docker -->
+  <line x1="826" y1="282" x2="730" y2="310" stroke="#c07a2e" stroke-width="1.4" marker-end="url(#arrow-orange)" stroke-dasharray="4,2"/>
+  <text x="798" y="300" font-size="8.5" fill="#c07a2e">scrape</text>
+  <line x1="658" y1="310" x2="750" y2="283" stroke="#5a9a70" stroke-width="1.4" marker-end="url(#arrow-green)"/>
+  <text x="675" y="300" font-size="8.5" fill="#5a9a70">métricas</text>
+  <line x1="826" y1="282" x2="740" y2="438" stroke="#c07a2e" stroke-width="1.2" marker-end="url(#arrow-orange)" stroke-dasharray="4,2"/>
+  <!-- ===== LOCAL DEVICES MONITORED ===== -->
+  <g filter="url(#shadow)">
+    <rect x="388" y="555" width="536" height="68" rx="8" fill="#f0f4f8" stroke="#7090b0" stroke-width="1.2"/>
+  </g>
+  <text x="656" y="575" text-anchor="middle" font-size="11" font-weight="bold" fill="#2a4060">Dispositivos y Servicios Locales Monitoreados</text>
+  <line x1="398" y1="580" x2="914" y2="580" stroke="#c0d0e0" stroke-width="0.8"/>
+  <text x="430" y="595" font-size="9.5" fill="#3a5070">• Uptime Kuma y Grafana locales</text>
+  <text x="430" y="610" font-size="9.5" fill="#3a5070">• Prometheus y Node Exporter</text>
+  <text x="630" y="595" font-size="9.5" fill="#3a5070">• Router local / Internet</text>
+  <text x="630" y="610" font-size="9.5" fill="#3a5070">• SSH y servicios TCP internos</text>
+
+  <!-- Arrow devices → Uptime Kuma -->
+  <polyline points="388,589 374,589 374,245 386,245" fill="none" stroke="#7090b0" stroke-width="1" marker-end="url(#arrow)" stroke-dasharray="3,3"/>
+
+  <!-- Ansible -->
+  <g filter="url(#shadow)">
+    <rect x="18" y="672" width="280" height="42" rx="8" fill="#f0edf8" stroke="#7060a8" stroke-width="1.2"/>
+  </g>
+  <rect x="18" y="672" width="280" height="18" rx="8" fill="#7060a8"/>
+  <rect x="18" y="683" width="280" height="6" fill="#7060a8"/>
+  <text x="158" y="682" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Ansible</text>
+  <text x="158" y="700" text-anchor="middle" font-size="10" fill="#3a2870">Automatización de despliegue en Lubuntu</text>
+  <text x="158" y="712" text-anchor="middle" font-size="10" fill="#3a2870">Playbooks para instalación y configuración</text>
+
+  <!-- Footer -->
+  <rect x="0" y="714" width="1000" height="16" fill="#1e3a5f"/>
+  <text x="500" y="726" text-anchor="middle" font-size="9" fill="#90aaca">Proyecto: Monitorización de Red — Arquitectura en Entorno Local Lubuntu</text>
+</svg>

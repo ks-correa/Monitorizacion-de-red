@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 740" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#5a7fa8"/>
+    </marker>
+    <marker id="arrow-dark" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2a4a6a"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c07a2e"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4a8c6f"/>
+    </marker>
+    <filter id="shadow">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#00000018"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="740" fill="#f4f7fa"/>
+
+  <!-- Title bar -->
+  <rect x="0" y="0" width="1000" height="52" fill="#1e3a5f"/>
+  <text x="500" y="32" text-anchor="middle" font-size="17" font-weight="bold" fill="white" letter-spacing="0.5">ARQUITECTURA EN ENTORNO CLOUD — AWS EC2</text>
+
+  <!-- ===================== ADMIN (left) ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="28" y="95" width="130" height="88" rx="8" fill="#dce8f5" stroke="#5a7fa8" stroke-width="1.5"/>
+  </g>
+  <circle cx="93" cy="120" r="14" fill="#5a7fa8"/>
+  <rect x="70" y="137" width="46" height="20" rx="6" fill="#5a7fa8"/>
+  <text x="93" y="165" text-anchor="middle" font-size="11" fill="#1e3a5f" font-weight="bold">Administrador</text>
+  <text x="93" y="177" text-anchor="middle" font-size="10" fill="#3a5880">Usuario</text>
+
+  <!-- Arrow: Admin → Internet -->
+  <line x1="158" y1="139" x2="220" y2="139" stroke="#5a7fa8" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3"/>
+  <text x="189" y="132" text-anchor="middle" font-size="9" fill="#5a7fa8">HTTP / SSH</text>
+
+  <!-- ===================== INTERNET ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="222" y="110" width="118" height="58" rx="30" fill="#e8f0fa" stroke="#8aaccc" stroke-width="1.5"/>
+  </g>
+  <text x="281" y="136" text-anchor="middle" font-size="12" font-weight="bold" fill="#3a5880">Internet</text>
+  <text x="281" y="152" text-anchor="middle" font-size="9" fill="#5a7090">Red pública</text>
+
+  <!-- Arrow: Internet → Security Group -->
+  <line x1="340" y1="139" x2="400" y2="139" stroke="#5a7fa8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ===================== AWS CLOUD REGION ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="400" y="68" width="570" height="600" rx="14" fill="#eef4fb" stroke="#3a7ab8" stroke-width="2"/>
+  </g>
+  <text x="685" y="90" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a5f">Amazon Web Services — Región Cloud</text>
+
+  <!-- ===================== SECURITY GROUP ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="418" y="100" width="534" height="90" rx="10" fill="#fff3e0" stroke="#d08030" stroke-width="1.8"/>
+  </g>
+  <rect x="418" y="100" width="534" height="28" rx="10" fill="#d08030"/>
+  <rect x="418" y="120" width="534" height="8" fill="#d08030"/>
+  <text x="685" y="119" text-anchor="middle" font-size="13" font-weight="bold" fill="white">Security Group</text>
+  <text x="685" y="146" text-anchor="middle" font-size="10.5" fill="#4a2e00">Control de acceso entrante y saliente</text>
+  <text x="685" y="161" text-anchor="middle" font-size="10" fill="#6a4a10">Reglas de firewall a nivel de instancia · Gestión de puertos y protocolos permitidos</text>
+  <text x="685" y="180" text-anchor="middle" font-size="10" fill="#6a4a10">Puertos publicados: 22, 3001 y 3000</text>
+
+  <!-- Arrow: Security Group → EC2 -->
+  <line x1="685" y1="190" x2="685" y2="215" stroke="#d08030" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+
+  <!-- ===================== EC2 INSTANCE ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="418" y="216" width="534" height="428" rx="10" fill="#e8f3ee" stroke="#3a8a50" stroke-width="1.8"/>
+  </g>
+  <text x="685" y="237" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a4a28">Instancia AWS EC2 — Linux</text>
+
+  <!-- DOCKER COMPOSE box inside EC2 -->
+  <rect x="434" y="248" width="502" height="382" rx="8" fill="#dff0e8" stroke="#3a8a50" stroke-width="1.2" stroke-dasharray="6,3"/>
+  <text x="685" y="268" text-anchor="middle" font-size="11" font-weight="600" fill="#2a5a3a">Docker / Docker Compose</text>
+
+  <!-- Uptime Kuma -->
+  <g filter="url(#shadow)">
+    <rect x="450" y="278" width="210" height="100" rx="8" fill="white" stroke="#4a8ec4" stroke-width="1.8"/>
+  </g>
+  <rect x="450" y="278" width="210" height="26" rx="8" fill="#4a8ec4"/>
+  <rect x="450" y="297" width="210" height="7" fill="#4a8ec4"/>
+  <text x="555" y="294" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Uptime Kuma</text>
+  <text x="555" y="320" text-anchor="middle" font-size="10" fill="#1a3a5a">Monitorización de disponibilidad</text>
+  <text x="555" y="334" text-anchor="middle" font-size="10" fill="#1a3a5a">de servicios y puertos</text>
+  <text x="555" y="350" text-anchor="middle" font-size="9.5" fill="#607090">Puerto público: 3001</text>
+  <text x="555" y="364" text-anchor="middle" font-size="9.5" fill="#607090">Estado en tiempo real y alertas</text>
+
+  <!-- Prometheus -->
+  <g filter="url(#shadow)">
+    <rect x="690" y="278" width="210" height="100" rx="8" fill="white" stroke="#c07a2e" stroke-width="1.8"/>
+  </g>
+  <rect x="690" y="278" width="210" height="26" rx="8" fill="#c07a2e"/>
+  <rect x="690" y="297" width="210" height="7" fill="#c07a2e"/>
+  <text x="795" y="294" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Prometheus</text>
+  <text x="795" y="320" text-anchor="middle" font-size="10" fill="#3a2000">Recolección y almacenamiento</text>
+  <text x="795" y="334" text-anchor="middle" font-size="10" fill="#3a2000">de métricas (time-series)</text>
+  <text x="795" y="350" text-anchor="middle" font-size="9.5" fill="#6a5030">Puerto interno: 9090</text>
+  <text x="795" y="364" text-anchor="middle" font-size="9.5" fill="#6a5030">Scraping de Node Exporter</text>
+
+  <!-- Node Exporter -->
+  <g filter="url(#shadow)">
+    <rect x="570" y="400" width="210" height="100" rx="8" fill="white" stroke="#5a9a70" stroke-width="1.8"/>
+  </g>
+  <rect x="570" y="400" width="210" height="26" rx="8" fill="#5a9a70"/>
+  <rect x="570" y="419" width="210" height="7" fill="#5a9a70"/>
+  <text x="675" y="416" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Node Exporter</text>
+  <text x="675" y="440" text-anchor="middle" font-size="10" fill="#1a3a20">Recolección de métricas del SO</text>
+  <text x="675" y="454" text-anchor="middle" font-size="10" fill="#1a3a20">y hardware de la instancia EC2</text>
+  <text x="675" y="470" text-anchor="middle" font-size="9.5" fill="#3a6045">CPU · RAM · Disco · Red · Uptime</text>
+  <text x="675" y="484" text-anchor="middle" font-size="9.5" fill="#3a6045">Puerto interno: 9100</text>
+
+  <!-- Grafana -->
+  <g filter="url(#shadow)">
+    <rect x="450" y="518" width="440" height="88" rx="8" fill="white" stroke="#e05a20" stroke-width="1.8"/>
+  </g>
+  <rect x="450" y="518" width="440" height="26" rx="8" fill="#e05a20"/>
+  <rect x="450" y="537" width="440" height="7" fill="#e05a20"/>
+  <text x="670" y="534" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Grafana</text>
+  <text x="670" y="558" text-anchor="middle" font-size="10" fill="#3a1a00">Dashboards de métricas del servidor</text>
+  <text x="670" y="572" text-anchor="middle" font-size="10" fill="#3a1a00">Fuente de datos: Prometheus</text>
+  <text x="670" y="587" text-anchor="middle" font-size="9.5" fill="#6a3010">Puerto público: 3000</text>
+  <text x="670" y="600" text-anchor="middle" font-size="9.5" fill="#6a3010">Acceso web del administrador</text>
+
+  <!-- Arrows inside EC2 -->
+  <!-- Prometheus → Node Exporter (scrape) -->
+  <line x1="795" y1="378" x2="760" y2="400" stroke="#c07a2e" stroke-width="1.4" marker-end="url(#arrow-orange)" stroke-dasharray="4,2"/>
+  <text x="800" y="395" font-size="8.5" fill="#c07a2e">scrape</text>
+
+  <!-- Node Exporter → Prometheus -->
+  <line x1="670" y1="400" x2="750" y2="378" stroke="#5a9a70" stroke-width="1.4" marker-end="url(#arrow-green)"/>
+  <text x="686" y="393" font-size="8.5" fill="#5a9a70">métricas</text>
+
+  <!-- Prometheus → Grafana -->
+  <line x1="795" y1="378" x2="710" y2="516" stroke="#c07a2e" stroke-width="1.4" marker-end="url(#arrow-orange)" stroke-dasharray="4,2"/>
+
+  <!-- ===================== MONITORED TARGETS ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="28" y="380" width="175" height="210" rx="8" fill="#f0f4f8" stroke="#7090b0" stroke-width="1.2"/>
+  </g>
+  <text x="115" y="400" text-anchor="middle" font-size="11" font-weight="bold" fill="#2a4060">Objetivos</text>
+  <text x="115" y="413" text-anchor="middle" font-size="11" font-weight="bold" fill="#2a4060">Monitoreados</text>
+  <line x1="38" y1="420" x2="193" y2="420" stroke="#c0d0e0" stroke-width="1"/>
+  <text x="38" y="436" font-size="9.5" fill="#3a5070">• Uptime Kuma AWS :3001</text>
+  <text x="38" y="452" font-size="9.5" fill="#3a5070">• Grafana AWS :3000</text>
+  <text x="38" y="468" font-size="9.5" fill="#3a5070">• SSH AWS :22</text>
+  <text x="38" y="484" font-size="9.5" fill="#3a5070">• Google DNS mediante ping</text>
+  <text x="38" y="500" font-size="9.5" fill="#3a5070">• Sitios externos HTTP/HTTPS</text>
+  <text x="38" y="516" font-size="9.5" fill="#3a5070">• APIs y endpoints</text>
+  <text x="38" y="532" font-size="9.5" fill="#3a5070">• Nodos remotos</text>
+  <line x1="38" y1="540" x2="193" y2="540" stroke="#c0d0e0" stroke-width="1"/>
+  <text x="115" y="556" text-anchor="middle" font-size="8.5" fill="#607090" font-style="italic">Sin IPs ni configs</text>
+  <text x="115" y="569" text-anchor="middle" font-size="8.5" fill="#607090" font-style="italic">específicas</text>
+  <text x="115" y="582" text-anchor="middle" font-size="8.5" fill="#607090" font-style="italic">(diagrama conceptual)</text>
+
+  <!-- Arrow targets → Uptime Kuma -->
+  <line x1="203" y1="450" x2="400" y2="330" stroke="#7090b0" stroke-width="1.2" marker-end="url(#arrow)" stroke-dasharray="4,3"/>
+  <text x="285" y="370" text-anchor="middle" font-size="8.5" fill="#7090b0">monitorea</text>
+
+  <!-- Ansible note -->
+  <g filter="url(#shadow)">
+    <rect x="28" y="620" width="355" height="60" rx="8" fill="#f0edf8" stroke="#7060a8" stroke-width="1.2"/>
+  </g>
+  <rect x="28" y="620" width="355" height="22" rx="8" fill="#7060a8"/>
+  <rect x="28" y="634" width="355" height="8" fill="#7060a8"/>
+  <text x="205" y="633" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Ansible</text>
+  <text x="205" y="654" text-anchor="middle" font-size="10" fill="#3a2870">Automatización del aprovisionamiento de la instancia EC2</text>
+  <text x="205" y="668" text-anchor="middle" font-size="10" fill="#3a2870">y despliegue de contenedores mediante playbooks</text>
+
+  <!-- Footer -->
+  <rect x="0" y="722" width="1000" height="18" fill="#1e3a5f"/>
+  <text x="500" y="734" text-anchor="middle" font-size="9" fill="#90aaca">Proyecto: Monitorización de Red — Arquitectura en Entorno Cloud AWS EC2</text>
+</svg>

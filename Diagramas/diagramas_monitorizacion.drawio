@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="Claude" version="21.0.0" type="device">
+
+  <!-- ============================================================
+       DIAGRAMA 1: ARQUITECTURA GENERAL
+       ============================================================ -->
+  <diagram id="arch-general" name="1. Arquitectura General">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title1" value="ARQUITECTURA GENERAL — SISTEMA DE MONITORIZACIÓN DE RED" style="text;html=1;strokeColor=none;fillColor=#1e3a5f;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontColor=white;fontSize=14;fontStyle=1;spacingTop=0;" vertex="1" parent="1"><mxGeometry x="0" y="0" width="1100" height="40" as="geometry"/></mxCell>
+
+        <!-- Admin -->
+        <mxCell id="admin1" value="&lt;b&gt;Administrador&lt;/b&gt;&lt;br&gt;Usuario" style="shape=mxgraph.cisco.computers_and_peripherals.pc;fillColor=#dce8f5;strokeColor=#5a7fa8;fontColor=#1e3a5f;fontSize=11;" vertex="1" parent="1"><mxGeometry x="30" y="80" width="120" height="80" as="geometry"/></mxCell>
+
+        <!-- Server outer -->
+        <mxCell id="server1" value="SERVIDOR DE MONITORIZACIÓN" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef3f8;strokeColor=#5a7fa8;strokeWidth=2;verticalAlign=top;fontSize=12;fontStyle=1;fontColor=#1e3a5f;" vertex="1" parent="1"><mxGeometry x="200" y="60" width="870" height="580" as="geometry"/></mxCell>
+
+        <!-- Docker box -->
+        <mxCell id="docker1" value="Docker / Docker Compose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dfe9f3;strokeColor=#3a6ea0;strokeWidth=1;verticalAlign=top;dashed=1;dashPattern=7 3;fontSize=11;fontStyle=1;fontColor=#2a5080;" vertex="1" parent="1"><mxGeometry x="220" y="90" width="830" height="430" as="geometry"/></mxCell>
+
+        <!-- Uptime Kuma -->
+        <mxCell id="uk1" value="&lt;b&gt;Uptime Kuma&lt;/b&gt;&lt;br&gt;&lt;font color='#607090'&gt;Monitorización de disponibilidad&lt;br&gt;de servicios y puertos&lt;br&gt;Interfaz web con alertas&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#4a8ec4;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="240" y="120" width="240" height="100" as="geometry"/></mxCell>
+        <mxCell id="uk1-header" value="Uptime Kuma" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4a8ec4;strokeColor=#4a8ec4;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="240" y="120" width="240" height="28" as="geometry"/></mxCell>
+
+        <!-- Services monitored (Uptime) -->
+        <mxCell id="svc1" value="&lt;b&gt;Servicios y Puertos Monitoreados&lt;/b&gt;&lt;hr/&gt;• Servicios HTTP / HTTPS&lt;br&gt;• Servicios TCP / UDP&lt;br&gt;• Dispositivos de red&lt;br&gt;• Nodos remotos&lt;br&gt;• APIs y endpoints&lt;br&gt;&lt;font color='#607090'&gt;&lt;i&gt;Comprobación por ping y sondeo&lt;/i&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#6a9ab8;strokeWidth=1;verticalAlign=top;spacingTop=8;fontSize=10;align=left;spacingLeft=10;" vertex="1" parent="1"><mxGeometry x="240" y="240" width="240" height="200" as="geometry"/></mxCell>
+
+        <!-- Node Exporter -->
+        <mxCell id="ne1" value="&lt;b&gt;Node Exporter&lt;/b&gt;&lt;br&gt;&lt;font color='#3a6045'&gt;Recolección de métricas del SO&lt;br&gt;CPU · Memoria RAM&lt;br&gt;Disco · Red · Procesos&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#5a9a70;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="560" y="120" width="200" height="110" as="geometry"/></mxCell>
+        <mxCell id="ne1-header" value="Node Exporter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5a9a70;strokeColor=#5a9a70;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="560" y="120" width="200" height="28" as="geometry"/></mxCell>
+
+        <!-- Prometheus -->
+        <mxCell id="prom1" value="&lt;b&gt;Prometheus&lt;/b&gt;&lt;br&gt;&lt;font color='#6a5030'&gt;Recolección y almacenamiento&lt;br&gt;de métricas (time-series)&lt;br&gt;Consultas PromQL&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#c07a2e;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="560" y="250" width="200" height="100" as="geometry"/></mxCell>
+        <mxCell id="prom1-header" value="Prometheus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c07a2e;strokeColor=#c07a2e;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="560" y="250" width="200" height="28" as="geometry"/></mxCell>
+
+        <!-- Grafana -->
+        <mxCell id="graf1" value="&lt;b&gt;Grafana&lt;/b&gt;&lt;br&gt;&lt;font color='#6a3010'&gt;Visualización de métricas&lt;br&gt;Dashboards interactivos&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#e05a20;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="560" y="370" width="200" height="80" as="geometry"/></mxCell>
+        <mxCell id="graf1-header" value="Grafana" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e05a20;strokeColor=#e05a20;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="560" y="370" width="200" height="28" as="geometry"/></mxCell>
+
+        <!-- Ansible -->
+        <mxCell id="ans1" value="&lt;b&gt;Ansible&lt;/b&gt;&lt;br&gt;Automatización del despliegue y configuración&lt;br&gt;Playbooks para instalación de servicios" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edf8;strokeColor=#7060a8;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="220" y="545" width="400" height="70" as="geometry"/></mxCell>
+        <mxCell id="ans1-header" value="Ansible" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7060a8;strokeColor=#7060a8;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="220" y="545" width="400" height="26" as="geometry"/></mxCell>
+
+        <!-- Entornos -->
+        <mxCell id="env1" value="&lt;b&gt;Entornos de Despliegue&lt;/b&gt;&lt;br&gt;AWS EC2 (Entorno cloud)&lt;br&gt;Lubuntu (Entorno local)&lt;br&gt;Redes comunitarias" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f0e8;strokeColor=#a88030;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="660" y="545" width="360" height="70" as="geometry"/></mxCell>
+        <mxCell id="env1-header" value="Entornos de Despliegue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#a88030;strokeColor=#a88030;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="660" y="545" width="360" height="26" as="geometry"/></mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;dashed=1;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;strokeColor=#5a7fa8;" edge="1" parent="1" source="admin1" target="uk1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#5a9a70;" edge="1" parent="1" source="ne1" target="prom1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#c07a2e;" edge="1" parent="1" source="prom1" target="graf1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#4a8ec4;" edge="1" parent="1" source="uk1" target="svc1"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- ============================================================
+       DIAGRAMA 2: AWS EC2
+       ============================================================ -->
+  <diagram id="arch-aws" name="2. Arquitectura AWS EC2">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="title2" value="ARQUITECTURA EN ENTORNO CLOUD — AWS EC2" style="text;html=1;strokeColor=none;fillColor=#1e3a5f;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontColor=white;fontSize=14;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="0" y="0" width="1100" height="40" as="geometry"/></mxCell>
+
+        <!-- Admin -->
+        <mxCell id="admin2" value="&lt;b&gt;Administrador&lt;/b&gt;&lt;br&gt;Usuario" style="shape=mxgraph.cisco.computers_and_peripherals.pc;fillColor=#dce8f5;strokeColor=#5a7fa8;fontColor=#1e3a5f;fontSize=11;" vertex="1" parent="1"><mxGeometry x="20" y="80" width="110" height="80" as="geometry"/></mxCell>
+
+        <!-- Internet -->
+        <mxCell id="inet2" value="&lt;b&gt;Internet&lt;/b&gt;&lt;br&gt;Red pública" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e8f0fa;strokeColor=#8aaccc;fontSize=11;" vertex="1" parent="1"><mxGeometry x="170" y="95" width="120" height="60" as="geometry"/></mxCell>
+
+        <!-- AWS Region box -->
+        <mxCell id="aws2" value="Amazon Web Services — Región Cloud" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fb;strokeColor=#3a7ab8;strokeWidth=2;verticalAlign=top;fontSize=12;fontStyle=1;fontColor=#1e3a5f;" vertex="1" parent="1"><mxGeometry x="340" y="60" width="720" height="570" as="geometry"/></mxCell>
+
+        <!-- Security Group -->
+        <mxCell id="sg2" value="&lt;b&gt;Security Group&lt;/b&gt;&lt;br&gt;Control de acceso entrante y saliente&lt;br&gt;Reglas de firewall a nivel de instancia&lt;br&gt;Gestión de puertos y protocolos permitidos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#d08030;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="360" y="90" width="680" height="80" as="geometry"/></mxCell>
+        <mxCell id="sg2h" value="Security Group" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d08030;strokeColor=#d08030;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="360" y="90" width="680" height="26" as="geometry"/></mxCell>
+
+        <!-- EC2 Instance -->
+        <mxCell id="ec2" value="Instancia AWS EC2 — Linux" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f3ee;strokeColor=#3a8a50;strokeWidth=2;verticalAlign=top;fontSize=12;fontStyle=1;fontColor=#1a4a28;" vertex="1" parent="1"><mxGeometry x="360" y="190" width="680" height="420" as="geometry"/></mxCell>
+
+        <!-- Docker inside EC2 -->
+        <mxCell id="dock2" value="Docker / Docker Compose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dff0e8;strokeColor=#3a8a50;strokeWidth=1;verticalAlign=top;dashed=1;dashPattern=6 3;fontSize=11;fontStyle=1;fontColor=#2a5a3a;" vertex="1" parent="1"><mxGeometry x="375" y="220" width="650" height="376" as="geometry"/></mxCell>
+
+        <!-- Uptime Kuma EC2 -->
+        <mxCell id="uk2" value="&lt;b&gt;Uptime Kuma&lt;/b&gt;&lt;br&gt;Monitorización de disponibilidad&lt;br&gt;de servicios y puertos&lt;br&gt;&lt;font color='#607090'&gt;Interfaz web · Alertas&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#4a8ec4;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="390" y="245" width="220" height="100" as="geometry"/></mxCell>
+        <mxCell id="uk2h" value="Uptime Kuma" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4a8ec4;strokeColor=#4a8ec4;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="390" y="245" width="220" height="26" as="geometry"/></mxCell>
+
+        <!-- Prometheus EC2 -->
+        <mxCell id="prom2" value="&lt;b&gt;Prometheus&lt;/b&gt;&lt;br&gt;Recolección y almacenamiento&lt;br&gt;de métricas (time-series)&lt;br&gt;&lt;font color='#6a5030'&gt;Scraping · PromQL&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#c07a2e;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="790" y="245" width="220" height="100" as="geometry"/></mxCell>
+        <mxCell id="prom2h" value="Prometheus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c07a2e;strokeColor=#c07a2e;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="790" y="245" width="220" height="26" as="geometry"/></mxCell>
+
+        <!-- Node Exporter EC2 -->
+        <mxCell id="ne2" value="&lt;b&gt;Node Exporter&lt;/b&gt;&lt;br&gt;Métricas del SO y hardware EC2&lt;br&gt;&lt;font color='#3a6045'&gt;CPU · RAM · Disco · Red · Uptime&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#5a9a70;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="590" y="375" width="220" height="90" as="geometry"/></mxCell>
+        <mxCell id="ne2h" value="Node Exporter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5a9a70;strokeColor=#5a9a70;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="590" y="375" width="220" height="26" as="geometry"/></mxCell>
+
+        <!-- Grafana EC2 -->
+        <mxCell id="graf2" value="&lt;b&gt;Grafana&lt;/b&gt;&lt;br&gt;Visualización de métricas · Dashboards interactivos&lt;br&gt;Fuente: Prometheus · Accesible vía navegador" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#e05a20;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="390" y="500" width="620" height="80" as="geometry"/></mxCell>
+        <mxCell id="graf2h" value="Grafana" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e05a20;strokeColor=#e05a20;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="390" y="500" width="620" height="26" as="geometry"/></mxCell>
+
+        <!-- Monitored targets -->
+        <mxCell id="tgts2" value="&lt;b&gt;Objetivos Monitoreados&lt;/b&gt;&lt;hr/&gt;• Servicios HTTP / HTTPS&lt;br&gt;• Servicios TCP&lt;br&gt;• APIs y endpoints&lt;br&gt;• Puertos específicos&lt;br&gt;• Nodos remotos&lt;br&gt;• Instancia EC2&lt;br&gt;&lt;i&gt;&lt;font color='#607090'&gt;Diagrama conceptual&lt;/font&gt;&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f4f8;strokeColor=#7090b0;strokeWidth=1;verticalAlign=top;spacingTop=6;fontSize=10;align=left;spacingLeft=8;" vertex="1" parent="1"><mxGeometry x="20" y="370" width="160" height="200" as="geometry"/></mxCell>
+
+        <!-- Ansible note -->
+        <mxCell id="ans2" value="&lt;b&gt;Ansible&lt;/b&gt;&lt;br&gt;Automatización del aprovisionamiento EC2&lt;br&gt;y despliegue de contenedores" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edf8;strokeColor=#7060a8;strokeWidth=1.5;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="20" y="610" width="300" height="60" as="geometry"/></mxCell>
+        <mxCell id="ans2h" value="Ansible" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7060a8;strokeColor=#7060a8;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="20" y="610" width="300" height="24" as="geometry"/></mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="ea1" style="edgeStyle=orthogonalEdgeStyle;dashed=1;html=1;strokeColor=#5a7fa8;" edge="1" parent="1" source="admin2" target="inet2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ea2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#5a7fa8;" edge="1" parent="1" source="inet2" target="sg2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ea3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d08030;" edge="1" parent="1" source="sg2" target="ec2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ea4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#5a9a70;" edge="1" parent="1" source="ne2" target="prom2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ea5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#c07a2e;" edge="1" parent="1" source="prom2" target="graf2"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ea6" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#4a8ec4;" edge="1" parent="1" source="uk2" target="graf2"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- ============================================================
+       DIAGRAMA 3: ENTORNO LOCAL LUBUNTU
+       ============================================================ -->
+  <diagram id="arch-local" name="3. Arquitectura Local Lubuntu">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="title3" value="ARQUITECTURA EN ENTORNO LOCAL — LUBUNTU" style="text;html=1;strokeColor=none;fillColor=#1e3a5f;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontColor=white;fontSize=14;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="0" y="0" width="1100" height="40" as="geometry"/></mxCell>
+
+        <!-- Local network outer -->
+        <mxCell id="lan3" value="Red Local" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f4f8;strokeColor=#5080a8;strokeWidth=2;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#1e3a5f;" vertex="1" parent="1"><mxGeometry x="10" y="55" width="1080" height="600" as="geometry"/></mxCell>
+
+        <!-- Router -->
+        <mxCell id="rtr3" value="&lt;b&gt;Router / Gateway&lt;/b&gt;&lt;br&gt;OpenWrt / Cisco&lt;br&gt;(equipamiento de red)&lt;br&gt;Punto de acceso local" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f0fa;strokeColor=#5a7fa8;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="25" y="100" width="160" height="100" as="geometry"/></mxCell>
+        <mxCell id="rtr3h" value="Router / Gateway" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5a7fa8;strokeColor=#5a7fa8;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="25" y="100" width="160" height="26" as="geometry"/></mxCell>
+
+        <!-- User local -->
+        <mxCell id="usr3" value="&lt;b&gt;Usuario Local&lt;/b&gt;&lt;br&gt;Red interna" style="shape=mxgraph.cisco.computers_and_peripherals.pc;fillColor=#dce8f5;strokeColor=#5a7fa8;fontColor=#1e3a5f;fontSize=11;" vertex="1" parent="1"><mxGeometry x="35" y="240" width="120" height="80" as="geometry"/></mxCell>
+
+        <!-- Lubuntu Server -->
+        <mxCell id="lub3" value="Servidor Lubuntu" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf3f8;strokeColor=#3a6a90;strokeWidth=2;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#1e3a5f;" vertex="1" parent="1"><mxGeometry x="240" y="80" width="820" height="555" as="geometry"/></mxCell>
+
+        <!-- Docker inside Lubuntu -->
+        <mxCell id="dock3" value="Docker / Docker Compose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e0ecf4;strokeColor=#3a6a90;strokeWidth=1;verticalAlign=top;dashed=1;dashPattern=6 3;fontSize=11;fontStyle=1;fontColor=#2a4a6a;" vertex="1" parent="1"><mxGeometry x="255" y="120" width="793" height="395" as="geometry"/></mxCell>
+
+        <!-- Uptime Kuma Local -->
+        <mxCell id="uk3" value="&lt;b&gt;Uptime Kuma&lt;/b&gt;&lt;br&gt;Monitorización de disponibilidad&lt;br&gt;de servicios y puertos locales&lt;br&gt;&lt;font color='#607090'&gt;Estado en tiempo real · Alertas&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#4a8ec4;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="270" y="145" width="220" height="100" as="geometry"/></mxCell>
+        <mxCell id="uk3h" value="Uptime Kuma" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4a8ec4;strokeColor=#4a8ec4;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="270" y="145" width="220" height="26" as="geometry"/></mxCell>
+
+        <!-- Prometheus Local -->
+        <mxCell id="prom3" value="&lt;b&gt;Prometheus&lt;/b&gt;&lt;br&gt;Recolección de métricas&lt;br&gt;Almacenamiento local · PromQL&lt;br&gt;&lt;font color='#6a5030'&gt;Scraping de exportadores&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#c07a2e;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="820" y="145" width="210" height="100" as="geometry"/></mxCell>
+        <mxCell id="prom3h" value="Prometheus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c07a2e;strokeColor=#c07a2e;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="820" y="145" width="210" height="26" as="geometry"/></mxCell>
+
+        <!-- Node Exporter Local -->
+        <mxCell id="ne3" value="&lt;b&gt;Node Exporter&lt;/b&gt;&lt;br&gt;Métricas del servidor Lubuntu&lt;br&gt;&lt;font color='#3a6045'&gt;CPU · RAM · Disco · Red · Procesos&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#5a9a70;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="545" y="270" width="220" height="90" as="geometry"/></mxCell>
+        <mxCell id="ne3h" value="Node Exporter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5a9a70;strokeColor=#5a9a70;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="545" y="270" width="220" height="26" as="geometry"/></mxCell>
+
+        <!-- Grafana Local -->
+        <mxCell id="graf3" value="&lt;b&gt;Grafana&lt;/b&gt;&lt;br&gt;Dashboards interactivos · Fuente: Prometheus&lt;br&gt;Accesible en la red local · Sin acceso a Internet requerido" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#e05a20;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="270" y="390" width="760" height="80" as="geometry"/></mxCell>
+        <mxCell id="graf3h" value="Grafana" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e05a20;strokeColor=#e05a20;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="270" y="390" width="760" height="26" as="geometry"/></mxCell>
+
+        <!-- Devices Monitored -->
+        <mxCell id="devs3" value="&lt;b&gt;Dispositivos y Servicios Monitoreados&lt;/b&gt;&lt;hr/&gt;• Servicios HTTP / HTTPS locales&lt;br&gt;• Puertos TCP / UDP internos&lt;br&gt;• Dispositivos de red (OpenWrt / Cisco)&lt;br&gt;• Nodos de la red local · APIs internas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f4f8;strokeColor=#7090b0;strokeWidth=1;verticalAlign=top;spacingTop=6;fontSize=10;" vertex="1" parent="1"><mxGeometry x="255" y="530" width="793" height="80" as="geometry"/></mxCell>
+
+        <!-- Ansible note -->
+        <mxCell id="ans3" value="&lt;b&gt;Ansible&lt;/b&gt; — Automatización de despliegue en Lubuntu · Playbooks para instalación y configuración" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edf8;strokeColor=#7060a8;strokeWidth=1.5;fontSize=10;" vertex="1" parent="1"><mxGeometry x="10" y="665" width="600" height="36" as="geometry"/></mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="el1" style="edgeStyle=orthogonalEdgeStyle;dashed=1;html=1;strokeColor=#5a7fa8;" edge="1" parent="1" source="usr3" target="uk3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="el2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#5a9a70;" edge="1" parent="1" source="ne3" target="prom3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="el3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#c07a2e;" edge="1" parent="1" source="prom3" target="graf3"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="el4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#4a8ec4;" edge="1" parent="1" source="uk3" target="graf3"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <!-- ============================================================
+       DIAGRAMA 4: RELACIÓN ENTRE HERRAMIENTAS
+       ============================================================ -->
+  <diagram id="rel-tools" name="4. Relación entre Herramientas">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="title4" value="RELACIÓN ENTRE HERRAMIENTAS DEL SISTEMA" style="text;html=1;strokeColor=none;fillColor=#1e3a5f;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontColor=white;fontSize=14;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="0" y="0" width="1100" height="40" as="geometry"/></mxCell>
+
+        <!-- Ansible (top center) -->
+        <mxCell id="ans4" value="&lt;b&gt;Ansible&lt;/b&gt;&lt;br&gt;&lt;b&gt;Automatización&lt;/b&gt;&lt;br&gt;Provisiona y configura los entornos&lt;br&gt;mediante playbooks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edf8;strokeColor=#7060a8;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="400" y="60" width="250" height="90" as="geometry"/></mxCell>
+        <mxCell id="ans4h" value="Ansible" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7060a8;strokeColor=#7060a8;fontColor=white;fontSize=14;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="400" y="60" width="250" height="28" as="geometry"/></mxCell>
+
+        <!-- AWS EC2 -->
+        <mxCell id="ec4" value="&lt;b&gt;AWS EC2&lt;/b&gt;&lt;br&gt;&lt;b&gt;Entorno Cloud&lt;/b&gt;&lt;br&gt;Infraestructura virtual en la nube&lt;br&gt;Instancia Linux sobre AWS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#d08030;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="80" y="210" width="240" height="90" as="geometry"/></mxCell>
+        <mxCell id="ec4h" value="AWS EC2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d08030;strokeColor=#d08030;fontColor=white;fontSize=14;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="80" y="210" width="240" height="28" as="geometry"/></mxCell>
+
+        <!-- Lubuntu -->
+        <mxCell id="lub4" value="&lt;b&gt;Lubuntu&lt;/b&gt;&lt;br&gt;&lt;b&gt;Entorno Local&lt;/b&gt;&lt;br&gt;Servidor físico o virtual local&lt;br&gt;Sistema operativo Linux ligero" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f0fa;strokeColor=#3a6a90;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="730" y="210" width="240" height="90" as="geometry"/></mxCell>
+        <mxCell id="lub4h" value="Lubuntu" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3a6a90;strokeColor=#3a6a90;fontColor=white;fontSize=14;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="730" y="210" width="240" height="28" as="geometry"/></mxCell>
+
+        <!-- Docker (center) -->
+        <mxCell id="dock4" value="&lt;b&gt;Docker / Docker Compose&lt;/b&gt;&lt;br&gt;&lt;b&gt;Contenedores de servicios&lt;/b&gt;&lt;br&gt;Ejecución aislada de cada herramienta&lt;br&gt;Orquestación con Docker Compose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dfe9f3;strokeColor=#3a6ea0;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=11;" vertex="1" parent="1"><mxGeometry x="380" y="360" width="290" height="90" as="geometry"/></mxCell>
+        <mxCell id="dock4h" value="Docker / Docker Compose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3a6ea0;strokeColor=#3a6ea0;fontColor=white;fontSize=13;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="380" y="360" width="290" height="26" as="geometry"/></mxCell>
+
+        <!-- Uptime Kuma -->
+        <mxCell id="uk4" value="&lt;b&gt;Uptime Kuma&lt;/b&gt;&lt;br&gt;&lt;b&gt;Disponibilidad&lt;/b&gt;&lt;br&gt;Monitoriza servicios, puertos y nodos&lt;br&gt;HTTP, TCP, ping · Estado y alertas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#4a8ec4;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="30" y="530" width="200" height="110" as="geometry"/></mxCell>
+        <mxCell id="uk4h" value="Uptime Kuma" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4a8ec4;strokeColor=#4a8ec4;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="30" y="530" width="200" height="26" as="geometry"/></mxCell>
+
+        <!-- Node Exporter -->
+        <mxCell id="ne4" value="&lt;b&gt;Node Exporter&lt;/b&gt;&lt;br&gt;&lt;b&gt;Métricas del sistema&lt;/b&gt;&lt;br&gt;Recolecta métricas del SO&lt;br&gt;CPU · RAM · Disco · Red · Procesos" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#5a9a70;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="255" y="530" width="200" height="110" as="geometry"/></mxCell>
+        <mxCell id="ne4h" value="Node Exporter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5a9a70;strokeColor=#5a9a70;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="255" y="530" width="200" height="26" as="geometry"/></mxCell>
+
+        <!-- Prometheus -->
+        <mxCell id="prom4" value="&lt;b&gt;Prometheus&lt;/b&gt;&lt;br&gt;&lt;b&gt;Recolección de métricas&lt;/b&gt;&lt;br&gt;Almacena métricas en series de tiempo&lt;br&gt;Scraping de exportadores · PromQL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#c07a2e;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="480" y="530" width="200" height="110" as="geometry"/></mxCell>
+        <mxCell id="prom4h" value="Prometheus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#c07a2e;strokeColor=#c07a2e;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="480" y="530" width="200" height="26" as="geometry"/></mxCell>
+
+        <!-- Grafana -->
+        <mxCell id="graf4" value="&lt;b&gt;Grafana&lt;/b&gt;&lt;br&gt;&lt;b&gt;Visualización&lt;/b&gt;&lt;br&gt;Dashboards interactivos&lt;br&gt;Fuente: Prometheus · Alertas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=white;strokeColor=#e05a20;strokeWidth=2;verticalAlign=top;spacingTop=8;fontSize=10;" vertex="1" parent="1"><mxGeometry x="705" y="530" width="200" height="110" as="geometry"/></mxCell>
+        <mxCell id="graf4h" value="Grafana" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e05a20;strokeColor=#e05a20;fontColor=white;fontSize=12;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="705" y="530" width="200" height="26" as="geometry"/></mxCell>
+
+        <!-- Arrows -->
+        <mxCell id="er1" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#7060a8;strokeWidth=2;exitX=0.3;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="ans4" target="ec4"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="460" y="170"/><mxPoint x="200" y="170"/></Array></mxGeometry></mxCell>
+        <mxCell id="er2" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#7060a8;strokeWidth=2;exitX=0.7;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="ans4" target="lub4"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="590" y="170"/><mxPoint x="850" y="170"/></Array></mxGeometry></mxCell>
+        <mxCell id="er3" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#d08030;strokeWidth=1.5;" edge="1" parent="1" source="ec4" target="dock4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="er4" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3a6a90;strokeWidth=1.5;" edge="1" parent="1" source="lub4" target="dock4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="er5" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3a6ea0;strokeWidth=1.5;" edge="1" parent="1" source="dock4" target="uk4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="er6" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3a6ea0;strokeWidth=1.5;" edge="1" parent="1" source="dock4" target="ne4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="er7" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3a6ea0;strokeWidth=1.5;" edge="1" parent="1" source="dock4" target="prom4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="er8" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#3a6ea0;strokeWidth=1.5;" edge="1" parent="1" source="dock4" target="graf4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="er9" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#5a9a70;strokeWidth=1.5;" edge="1" parent="1" source="ne4" target="prom4"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="er10" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#c07a2e;strokeWidth=1.5;" edge="1" parent="1" source="prom4" target="graf4"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+</mxfile>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 720" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#5a7fa8"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4a8c6f"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c07a2e"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="120%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#00000018"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="720" fill="#f7f9fb"/>
+
+  <!-- Title -->
+  <rect x="0" y="0" width="1000" height="52" fill="#1e3a5f"/>
+  <text x="500" y="32" text-anchor="middle" font-size="17" font-weight="bold" fill="white" letter-spacing="0.5">ARQUITECTURA GENERAL — SISTEMA DE MONITORIZACIÓN DE RED</text>
+
+  <!-- ===================== ADMIN USER ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="30" y="95" width="140" height="80" rx="8" fill="#dce8f5" stroke="#5a7fa8" stroke-width="1.5"/>
+  </g>
+  <!-- User icon -->
+  <circle cx="100" cy="119" r="14" fill="#5a7fa8"/>
+  <rect x="76" y="136" width="48" height="22" rx="6" fill="#5a7fa8"/>
+  <text x="100" y="162" text-anchor="middle" font-size="11" fill="#1e3a5f" font-weight="bold">Administrador</text>
+  <text x="100" y="174" text-anchor="middle" font-size="10" fill="#3a5880">Usuario</text>
+
+  <!-- Arrow: Admin → Monitoring Server -->
+  <line x1="170" y1="135" x2="238" y2="135" stroke="#5a7fa8" stroke-width="1.5" marker-end="url(#arrow)" stroke-dasharray="5,3"/>
+  <text x="204" y="128" text-anchor="middle" font-size="9" fill="#5a7fa8">Acceso web</text>
+
+  <!-- ===================== MONITORING SERVER (outer box) ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="240" y="68" width="710" height="580" rx="12" fill="#eef3f8" stroke="#5a7fa8" stroke-width="2"/>
+  </g>
+  <text x="595" y="90" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a5f">SERVIDOR DE MONITORIZACIÓN</text>
+
+  <!-- ===================== DOCKER / DOCKER COMPOSE ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="262" y="100" width="666" height="430" rx="10" fill="#dfe9f3" stroke="#3a6ea0" stroke-width="1.5" stroke-dasharray="7,3"/>
+  </g>
+  <text x="595" y="120" text-anchor="middle" font-size="11" font-weight="600" fill="#2a5080">Docker / Docker Compose</text>
+
+  <!-- ── DISPONIBILIDAD BLOCK ── -->
+  <rect x="278" y="132" width="290" height="370" rx="8" fill="#e8f0f8" stroke="#6a8fb8" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="423" y="152" text-anchor="middle" font-size="10" fill="#3a6080" font-style="italic">Monitorización de disponibilidad</text>
+
+  <!-- Uptime Kuma -->
+  <g filter="url(#shadow)">
+    <rect x="300" y="164" width="240" height="100" rx="8" fill="#ffffff" stroke="#4a8ec4" stroke-width="1.8"/>
+  </g>
+  <rect x="300" y="164" width="240" height="28" rx="8" fill="#4a8ec4"/>
+  <rect x="300" y="184" width="240" height="8" rx="0" fill="#4a8ec4"/>
+  <text x="420" y="182" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Uptime Kuma</text>
+  <text x="420" y="208" text-anchor="middle" font-size="10" fill="#2a4a6a">Monitorización de disponibilidad</text>
+  <text x="420" y="222" text-anchor="middle" font-size="10" fill="#2a4a6a">de servicios y puertos</text>
+  <text x="420" y="240" text-anchor="middle" font-size="10" fill="#607090">Interfaz web con alertas</text>
+  <text x="420" y="254" text-anchor="middle" font-size="10" fill="#607090">y estado en tiempo real</text>
+
+  <!-- Monitored services (Uptime) -->
+  <g filter="url(#shadow)">
+    <rect x="300" y="286" width="240" height="196" rx="8" fill="#ffffff" stroke="#6a9ab8" stroke-width="1.2"/>
+  </g>
+  <text x="420" y="308" text-anchor="middle" font-size="11" font-weight="bold" fill="#2a4a6a">Servicios y Puertos Monitoreados</text>
+  <line x1="310" y1="315" x2="530" y2="315" stroke="#c0d0e0" stroke-width="1"/>
+  <text x="320" y="332" font-size="10" fill="#3a5870">• Servicios HTTP / HTTPS</text>
+  <text x="320" y="348" font-size="10" fill="#3a5870">• Servicios TCP y ping</text>
+  <text x="320" y="364" font-size="10" fill="#3a5870">• Dispositivos de red</text>
+  <text x="320" y="380" font-size="10" fill="#3a5870">• Nodos remotos</text>
+  <text x="320" y="396" font-size="10" fill="#3a5870">• APIs y endpoints</text>
+  <text x="320" y="428" font-size="10" fill="#6a8090" font-style="italic">Comprobación de disponibilidad</text>
+  <text x="320" y="443" font-size="10" fill="#6a8090" font-style="italic">mediante ping y sondeo</text>
+  <text x="320" y="463" font-size="10" fill="#6a8090" font-style="italic">de puertos</text>
+
+  <!-- Arrow: Uptime Kuma → Services -->
+  <line x1="420" y1="264" x2="420" y2="284" stroke="#4a8ec4" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="440" y="278" font-size="9" fill="#4a8ec4">monitorea</text>
+
+  <!-- ── MÉTRICAS BLOCK ── -->
+  <rect x="588" y="132" width="322" height="370" rx="8" fill="#eaf4ee" stroke="#5a9a70" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="749" y="152" text-anchor="middle" font-size="10" fill="#3a7050" font-style="italic">Monitorización de métricas del servidor</text>
+
+  <!-- Node Exporter -->
+  <g filter="url(#shadow)">
+    <rect x="606" y="164" width="190" height="118" rx="8" fill="#ffffff" stroke="#5a9a70" stroke-width="1.8"/>
+  </g>
+  <rect x="606" y="164" width="190" height="28" rx="8" fill="#5a9a70"/>
+  <rect x="606" y="184" width="190" height="8" fill="#5a9a70"/>
+  <text x="701" y="182" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Node Exporter</text>
+  <text x="701" y="208" text-anchor="middle" font-size="10" fill="#2a4a30">Recolección de métricas</text>
+  <text x="701" y="222" text-anchor="middle" font-size="10" fill="#2a4a30">del sistema operativo</text>
+  <line x1="616" y1="232" x2="786" y2="232" stroke="#c0d8c8" stroke-width="0.8"/>
+  <text x="616" y="248" font-size="9.5" fill="#3a6045">CPU · Memoria RAM</text>
+  <text x="616" y="262" font-size="9.5" fill="#3a6045">Disco · Red · Procesos</text>
+  <text x="616" y="275" font-size="9.5" fill="#3a6045">Uptime del sistema</text>
+
+  <!-- Prometheus -->
+  <g filter="url(#shadow)">
+    <rect x="606" y="300" width="190" height="100" rx="8" fill="#ffffff" stroke="#c07a2e" stroke-width="1.8"/>
+  </g>
+  <rect x="606" y="300" width="190" height="28" rx="8" fill="#c07a2e"/>
+  <rect x="606" y="320" width="190" height="8" fill="#c07a2e"/>
+  <text x="701" y="318" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Prometheus</text>
+  <text x="701" y="344" text-anchor="middle" font-size="10" fill="#4a3010">Recolección y almacenamiento</text>
+  <text x="701" y="358" text-anchor="middle" font-size="10" fill="#4a3010">de métricas (time-series)</text>
+  <text x="701" y="374" text-anchor="middle" font-size="10" fill="#6a5030">Consultas con PromQL</text>
+  <text x="701" y="388" text-anchor="middle" font-size="10" fill="#6a5030">Scraping de exportadores</text>
+
+  <!-- Grafana -->
+  <g filter="url(#shadow)">
+    <rect x="606" y="420" width="190" height="66" rx="8" fill="#ffffff" stroke="#e05a20" stroke-width="1.8"/>
+  </g>
+  <rect x="606" y="420" width="190" height="28" rx="8" fill="#e05a20"/>
+  <rect x="606" y="440" width="190" height="8" fill="#e05a20"/>
+  <text x="701" y="438" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Grafana</text>
+  <text x="701" y="462" text-anchor="middle" font-size="10" fill="#3a1a00">Visualización de métricas</text>
+  <text x="701" y="476" text-anchor="middle" font-size="10" fill="#3a1a00">Dashboards interactivos</text>
+
+  <!-- Arrows metrics chain -->
+  <line x1="701" y1="282" x2="701" y2="298" stroke="#4a8c6f" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <text x="712" y="295" font-size="9" fill="#4a8c6f">expone</text>
+  <line x1="701" y1="400" x2="701" y2="418" stroke="#c07a2e" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+  <text x="712" y="414" font-size="9" fill="#c07a2e">fuente</text>
+
+  <!-- Arrow: Admin → Grafana / Uptime Kuma dashboards -->
+  <line x1="170" y1="155" x2="170" y2="453" stroke="#5a7fa8" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="170" y1="453" x2="603" y2="453" stroke="#5a7fa8" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+  <!-- Legend line between Uptime and Prometheus blocks -->
+  <line x1="570" y1="260" x2="605" y2="260" stroke="#9ab0c0" stroke-width="1.2" stroke-dasharray="3,2"/>
+
+  <!-- ===================== ANSIBLE (outside Docker) ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="262" y="545" width="330" height="72" rx="8" fill="#f0edf8" stroke="#7060a8" stroke-width="1.5"/>
+  </g>
+  <rect x="262" y="545" width="330" height="24" rx="8" fill="#7060a8"/>
+  <rect x="262" y="561" width="330" height="8" fill="#7060a8"/>
+  <text x="427" y="561" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Ansible</text>
+  <text x="427" y="582" text-anchor="middle" font-size="10" fill="#3a2870">Automatización del despliegue y configuración</text>
+  <text x="427" y="597" text-anchor="middle" font-size="10" fill="#3a2870">Playbooks para instalación de servicios</text>
+  <text x="427" y="612" text-anchor="middle" font-size="10" fill="#3a2870">y configuración de entornos</text>
+
+  <!-- Arrow: Ansible → Docker -->
+  <line x1="427" y1="543" x2="427" y2="532" stroke="#7060a8" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="440" y="540" font-size="9" fill="#7060a8">despliega</text>
+
+  <!-- ===================== ENTORNOS (Cloud / Local) ===================== -->
+  <g filter="url(#shadow)">
+    <rect x="612" y="545" width="320" height="72" rx="8" fill="#f5f0e8" stroke="#a88030" stroke-width="1.5"/>
+  </g>
+  <rect x="612" y="545" width="320" height="24" rx="8" fill="#a88030"/>
+  <rect x="612" y="561" width="320" height="8" fill="#a88030"/>
+  <text x="772" y="561" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Entornos de Despliegue</text>
+  <text x="772" y="582" text-anchor="middle" font-size="10" fill="#4a3810">AWS EC2 (Entorno cloud)</text>
+  <text x="772" y="597" text-anchor="middle" font-size="10" fill="#4a3810">Lubuntu (Entorno local)</text>
+  <text x="772" y="612" text-anchor="middle" font-size="10" fill="#4a3810">Redes comunitarias con conectividad limitada</text>
+
+  <!-- ===================== LEGEND ===================== -->
+  <rect x="30" y="620" width="200" height="80" rx="6" fill="#eef3f8" stroke="#b0c0d8" stroke-width="1"/>
+  <text x="40" y="638" font-size="10" font-weight="bold" fill="#1e3a5f">LEYENDA</text>
+  <rect x="40" y="645" width="12" height="10" rx="2" fill="#4a8ec4" stroke="#4a8ec4"/>
+  <text x="58" y="654" font-size="9" fill="#2a3a50">Disponibilidad (Uptime Kuma)</text>
+  <rect x="40" y="660" width="12" height="10" rx="2" fill="#5a9a70" stroke="#5a9a70"/>
+  <text x="58" y="669" font-size="9" fill="#2a3a50">Métricas del sistema</text>
+  <rect x="40" y="675" width="12" height="10" rx="2" fill="#c07a2e" stroke="#c07a2e"/>
+  <text x="58" y="684" font-size="9" fill="#2a3a50">Recolección de métricas</text>
+  <rect x="40" y="690" width="12" height="10" rx="2" fill="#e05a20" stroke="#e05a20"/>
+  <text x="58" y="699" font-size="9" fill="#2a3a50">Visualización</text>
+
+  <!-- Footer -->
+  <rect x="0" y="702" width="1000" height="18" fill="#1e3a5f"/>
+  <text x="500" y="714" text-anchor="middle" font-size="9" fill="#90aaca">Proyecto: Monitorización de Red — Diagrama de Arquitectura General</text>
+</svg>
