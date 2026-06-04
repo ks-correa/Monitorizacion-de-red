@@ -1,8 +1,36 @@
-# Pruebas de fallo y recuperacion de GastoSmart
+# Pruebas de fallo y recuperación de GastoSmart
 
-Estas pruebas demuestran que la monitorizacion detecta fallos reales en una aplicacion distribuida.
+## Objetivo
 
-## Prueba 1: caida del backend
+Estas pruebas demuestran que la monitorización detecta fallos reales en una aplicación distribuida. Se validan tres escenarios: caída del frontend, caída del backend y caída de MongoDB.
+
+Las pruebas pueden ejecutarse en AWS sobre las instancias EC2 o en local mediante el script:
+
+```bash
+apps/gastosmart/scripts/probar_fallos_local.sh
+```
+
+## Estado esperado antes de probar
+
+Antes de detener servicios, validar:
+
+```bash
+curl http://IP_PUBLICA_FRONTEND
+curl http://IP_PUBLICA_FRONTEND/api/health
+curl http://IP_PUBLICA_FRONTEND/api/db-health
+```
+
+En local:
+
+```bash
+curl http://localhost:8080
+curl http://localhost:8080/api/health
+curl http://localhost:8080/api/db-health
+```
+
+Los monitores de Uptime Kuma y el dashboard de Grafana deben mostrar las capas principales en estado disponible.
+
+## Prueba 1: caída del backend
 
 En la instancia backend:
 
@@ -12,23 +40,31 @@ sudo docker stop gastosmart-backend
 
 Resultado esperado:
 
-- Uptime Kuma muestra `GastoSmart Backend Health` en DOWN.
-- `GastoSmart DB Health` tambien puede quedar DOWN porque depende del backend.
-- El frontend puede cargar archivos estaticos, pero las llamadas API fallan.
+- `GastoSmart Backend Health` queda DOWN en Uptime Kuma.
+- `GastoSmart DB Health` también puede quedar DOWN porque depende del backend.
+- El frontend puede cargar archivos estáticos, pero las llamadas a la API fallan.
+- Blackbox Exporter marca fallo en `/api/health` y `/api/db-health`.
 
-Recuperacion:
+Recuperación:
 
 ```bash
 sudo docker start gastosmart-backend
 ```
 
+Validación:
+
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8000/db-health
+```
+
 Resultado esperado:
 
 - `/health` vuelve a responder `status: ok`.
-- `/db-health` vuelve a responder `status: ok` si MongoDB esta funcionando.
+- `/db-health` vuelve a responder `status: ok` si MongoDB está funcionando.
 - Uptime Kuma vuelve a mostrar los monitores en UP.
 
-## Prueba 2: caida de MongoDB
+## Prueba 2: caída de MongoDB
 
 En la instancia MongoDB:
 
@@ -42,8 +78,9 @@ Resultado esperado:
 - El backend responde `/health`.
 - `/db-health` responde `status: error`.
 - Uptime Kuma muestra `GastoSmart DB Health` en DOWN.
+- Grafana refleja la pérdida de disponibilidad del probe de base de datos.
 
-Recuperacion:
+Recuperación:
 
 ```bash
 sudo docker start gastosmart-mongodb
@@ -54,7 +91,7 @@ Resultado esperado:
 - `/db-health` vuelve a responder `status: ok`.
 - Uptime Kuma vuelve a mostrar `GastoSmart DB Health` en UP.
 
-## Prueba 3: caida del frontend
+## Prueba 3: caída del frontend
 
 En la instancia frontend:
 
@@ -64,10 +101,11 @@ sudo docker stop gastosmart-frontend
 
 Resultado esperado:
 
-- Uptime Kuma muestra `GastoSmart Frontend` en DOWN.
-- El backend y MongoDB pueden seguir UP internamente.
+- `GastoSmart Frontend` queda DOWN en Uptime Kuma.
+- El endpoint público `http://IP_PUBLICA_FRONTEND` deja de responder.
+- Backend y MongoDB pueden seguir funcionando internamente.
 
-Recuperacion:
+Recuperación:
 
 ```bash
 sudo docker start gastosmart-frontend
@@ -77,11 +115,14 @@ Resultado esperado:
 
 - `http://IP_PUBLICA_FRONTEND` vuelve a responder.
 - El proxy `/api/health` vuelve a funcionar.
+- Uptime Kuma y Grafana vuelven a mostrar disponibilidad del frontend.
 
-## Pruebas locales
+## Evidencias recomendadas
 
-En local se puede ejecutar:
+Para el informe, capturar:
 
-```bash
-apps/gastosmart/scripts/probar_fallos_local.sh
-```
+- Estado UP antes de la prueba.
+- Monitor en DOWN durante el fallo.
+- Respuesta `curl` fallida o con HTTP `503`.
+- Recuperación del servicio.
+- Dashboard de Grafana mostrando caída y recuperación.

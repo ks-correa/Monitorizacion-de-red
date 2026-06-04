@@ -1,46 +1,86 @@
 # Seguridad de GastoSmart en AWS
 
-## Principio de minima exposicion
+## Enfoque
 
-La arquitectura aplica minima exposicion: solo el frontend queda disponible publicamente por HTTP. El backend y MongoDB no tienen IP publica y no aceptan trafico directo desde Internet.
+La seguridad del despliegue se basa en mínima exposición. El frontend es público porque es el punto de entrada de los usuarios; el backend y MongoDB quedan en instancias privadas sin IP pública.
 
 ## Security Groups
 
-Los Security Groups se nombran con sufijo `-sg`, evitando nombres que empiecen por `sg-` porque ese prefijo se puede confundir con identificadores internos de AWS.
+Los Security Groups deben terminar en `-sg`. No se deben crear nombres que empiecen por `sg-`, porque AWS usa ese formato para IDs internos.
 
-| Security Group | Reglas de entrada |
+Nombres usados por el proyecto:
+
+```text
+monitorizacion-sg
+frontend-sg
+backend-sg
+mongodb-sg
+```
+
+Reglas esperadas según `cloud/iac_gastosmart_secure.yml`:
+
+| Security Group | Entrada permitida |
 | --- | --- |
-| `monitorizacion-sg` | TCP 22, 3001 y 3000 solo desde `admin_cidr` |
-| `frontend-sg` | TCP 22 desde `admin_cidr`, TCP 80 desde `web_cidr` |
-| `backend-sg` | TCP 8000 desde `frontend-sg` y `monitorizacion-sg`; SSH opcional desde `monitorizacion-sg` |
-| `mongodb-sg` | TCP 27017 solo desde `backend-sg`; SSH opcional desde `monitorizacion-sg` |
+| `monitorizacion-sg` | TCP 22, 3001 y 3000 solo desde `admin_cidr`. |
+| `frontend-sg` | TCP 22 desde `admin_cidr`, TCP 80 desde `web_cidr`, TCP 9100 solo desde `admin_cidr` si se usa Node Exporter en frontend. |
+| `backend-sg` | TCP 8000 desde `frontend-sg` y `monitorizacion-sg`; TCP 22 y 9100 desde `monitorizacion-sg`. |
+| `mongodb-sg` | TCP 27017 solo desde `backend-sg`; TCP 22 y 9100 desde `monitorizacion-sg`. |
 
-No se abren los puertos 9090 de Prometheus ni 9100 de Node Exporter a Internet. Estos servicios deben quedar disponibles solo dentro de la instancia o red de monitorizacion.
+Prometheus `9090` y Node Exporter `9100` no deben abrirse públicamente a `0.0.0.0/0`. Si Node Exporter se consulta en instancias privadas, debe hacerse desde la instancia de monitorización o mediante proxy interno controlado.
 
-## Backend privado
+## Capas privadas
 
-El backend FastAPI escucha en el puerto 8000, pero el Security Group solo permite acceso desde el frontend y desde la instancia de monitorizacion. Esto permite que el usuario use la API mediante el frontend, sin exponer la API directamente a Internet.
+El backend FastAPI escucha en el puerto 8000, pero no recibe tráfico directo desde Internet. Solo acepta solicitudes desde el frontend y desde la instancia de monitorización para health checks.
 
-## MongoDB privado
+MongoDB escucha en el puerto 27017, pero solo acepta conexiones desde `backend-sg`. La salud de MongoDB se valida mediante `/db-health`, expuesto por el backend, sin abrir el puerto de base de datos al público.
 
-MongoDB se ejecuta en una instancia sin IP publica. El puerto 27017 solo acepta conexiones desde `backend-sg`. La salud de MongoDB se verifica indirectamente mediante `/db-health`, expuesto por el backend, para no abrir la base de datos a monitores publicos.
+## Variables sensibles
 
-## Secretos y archivos sensibles
-
-No se deben subir:
+No se deben versionar:
 
 - Llaves `.pem`.
 - Archivos `.env` reales.
-- Contrasenas.
-- Credenciales AWS.
+- Contraseñas.
+- Access Keys de AWS.
+- Tokens.
 - Archivos dentro de `.secrets/`.
+- Inventarios generados con IPs reales.
 
-El repo principal ya ignora `.pem`, `.env*`, `.secrets/` y credenciales. La integracion agrega solo `.env.example`.
+El repositorio incluye `.env.example` e `inventories/gastosmart_aws.ini.example` como plantillas seguras.
 
-## Docker vs AWS
+## CIDR administrativo
 
-Publicar un puerto en Docker no equivale a exponerlo publicamente en AWS. Por ejemplo, MongoDB puede estar publicado como `27017:27017` dentro de la instancia privada para que el backend lo alcance por red interna, pero el Security Group impide que Internet llegue a ese puerto.
+La variable `admin_cidr` define desde dónde se permite administrar la infraestructura. En `cloud/variables_gastosmart.yml` puede estar en `auto`, lo que permite detectar la IP pública actual del administrador y convertirla en `/32`.
 
-## Acceso administrativo
+Para una entrega final, se recomienda usar un valor concreto:
 
-El acceso SSH, Grafana y Uptime Kuma se restringen mediante `admin_cidr`. En una entrega final, `admin_cidr` debe ser una IP publica concreta en formato `/32`, no `0.0.0.0/0`.
+```text
+admin_cidr: "MI_IP_PUBLICA/32"
+```
+
+No se debe usar `0.0.0.0/0` para SSH, Grafana o Uptime Kuma.
+
+## Validaciones de seguridad
+
+Comprobar que backend y MongoDB no tienen IP pública:
+
+```bash
+aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values=gastosmart-backend" \
+  --query "Reservations[*].Instances[*].{Name:Tags[?Key=='Name']|[0].Value,PrivateIP:PrivateIpAddress,PublicIP:PublicIpAddress,State:State.Name}" \
+  --output table
+
+aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values=gastosmart-mongodb" \
+  --query "Reservations[*].Instances[*].{Name:Tags[?Key=='Name']|[0].Value,PrivateIP:PrivateIpAddress,PublicIP:PublicIpAddress,State:State.Name}" \
+  --output table
+```
+
+Revisar reglas de Security Groups:
+
+```bash
+aws ec2 describe-security-groups \
+  --filters "Name=group-name,Values=monitorizacion-sg,frontend-sg,backend-sg,mongodb-sg" \
+  --query "SecurityGroups[*].{Nombre:GroupName,Reglas:IpPermissions}" \
+  --output json
+```
