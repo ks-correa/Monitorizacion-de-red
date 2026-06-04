@@ -16,6 +16,13 @@ services:
     networks:
       - metricas-net
 
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: blackbox-exporter
+    restart: always
+    networks:
+      - metricas-net
+
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
@@ -31,7 +38,7 @@ services:
       - metricas-net
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.4.3
     container_name: grafana
     restart: always
     ports:

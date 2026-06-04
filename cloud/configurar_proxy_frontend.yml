@@ -1,0 +1,60 @@
+---
+- name: Reconfigurar proxy Nginx del frontend hacia backend privado
+  hosts: frontend
+  become: yes
+  gather_facts: no
+
+  vars_files:
+    - variables_gastosmart.yml
+
+  tasks:
+    - name: Definir IP privada del backend
+      set_fact:
+        backend_private_host: "{{ backend_private_ip | default(hostvars['backend'].ansible_host) }}"
+
+    - name: Renderizar configuracion Nginx en host
+      copy:
+        dest: /opt/gastosmart-deploy/apps/gastosmart/frontend/nginx.aws.rendered.conf
+        mode: '0644'
+        content: |
+          server {
+              listen 80;
+              server_name _;
+              root /usr/share/nginx/html;
+              index index.html;
+
+              location / {
+                  try_files $uri /index.html;
+              }
+
+              location /api/ {
+                  proxy_pass http://{{ backend_private_host }}:8000/api/;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+
+              location /node-frontend/metrics {
+                  proxy_pass http://127.0.0.1:9100/metrics;
+              }
+
+              location /node-backend/metrics {
+                  proxy_pass http://{{ backend_private_host }}:9100/metrics;
+              }
+
+              location /node-mongodb/metrics {
+                  proxy_pass http://{{ hostvars['mongodb'].ansible_host }}:9100/metrics;
+              }
+          }
+
+    - name: Copiar configuracion dentro del contenedor
+      command: docker cp /opt/gastosmart-deploy/apps/gastosmart/frontend/nginx.aws.rendered.conf gastosmart-frontend:/etc/nginx/conf.d/default.conf
+
+    - name: Recargar Nginx del frontend
+      command: docker exec gastosmart-frontend nginx -s reload
+
+    - name: Validar proxy
+      command: curl -fsS http://localhost/api/health
+      changed_when: false

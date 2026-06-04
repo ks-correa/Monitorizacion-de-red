@@ -1,0 +1,17 @@
+[monitorizacion]
+monitor ansible_host=<IP_PUBLICA_MONITOR> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/monitorizacion-key.pem
+
+[frontend]
+frontend ansible_host=<IP_PUBLICA_FRONTEND> ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/monitorizacion-key.pem
+
+[backend]
+backend ansible_host=<IP_PRIVADA_BACKEND> ansible_user=ubuntu ansible_ssh_private_key_file=./monitorizacion-key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new -o ProxyCommand="ssh -i ./monitorizacion-key.pem -o StrictHostKeyChecking=accept-new -W %h:%p ubuntu@<IP_PUBLICA_MONITOR>"'
+
+[mongodb]
+mongodb ansible_host=<IP_PRIVADA_MONGODB> ansible_user=ubuntu ansible_ssh_private_key_file=./monitorizacion-key.pem ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new -o ProxyCommand="ssh -i ./monitorizacion-key.pem -o StrictHostKeyChecking=accept-new -W %h:%p ubuntu@<IP_PUBLICA_MONITOR>"'
+
+[gastosmart:children]
+monitorizacion
+frontend
+backend
+mongodb

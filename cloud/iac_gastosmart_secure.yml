@@ -1,0 +1,356 @@
+---
+- name: Crear infraestructura segura para GastoSmart distribuido
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_files:
+    - variables_gastosmart.yml
+
+  tasks:
+    - name: Detectar IP publica del administrador
+      uri:
+        url: https://checkip.amazonaws.com
+        return_content: yes
+      register: detected_admin_public_ip
+      changed_when: false
+      when: admin_cidr == "auto"
+
+    - name: Definir CIDR administrativo efectivo
+      set_fact:
+        effective_admin_cidr: >-
+          {{
+            (detected_admin_public_ip.content | trim ~ '/32')
+            if admin_cidr == 'auto'
+            else admin_cidr
+          }}
+
+    - name: Validar nombres de Security Groups
+      assert:
+        that:
+          - item is match('^[^-].*-sg$')
+          - not item.startswith('sg-')
+        fail_msg: "Nombre invalido: {{ item }}. Debe terminar en -sg y no empezar por sg-."
+      loop:
+        - "{{ monitorizacion_sg_name }}"
+        - "{{ frontend_sg_name }}"
+        - "{{ backend_sg_name }}"
+        - "{{ mongodb_sg_name }}"
+
+    - name: Obtener AMI Ubuntu 22.04 mas reciente
+      amazon.aws.ec2_ami_info:
+        region: "{{ aws_region }}"
+        owners: "099720109477"
+        filters:
+          name: "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+          architecture: "x86_64"
+          virtualization-type: "hvm"
+          root-device-type: "ebs"
+      register: ubuntu_amis
+
+    - name: Seleccionar AMI mas reciente
+      set_fact:
+        ubuntu_ami_id: "{{ (ubuntu_amis.images | sort(attribute='creation_date') | last).image_id }}"
+
+    - name: Crear VPC para GastoSmart
+      amazon.aws.ec2_vpc_net:
+        name: "{{ gastosmart_vpc_name }}"
+        cidr_block: "{{ gastosmart_vpc_cidr }}"
+        region: "{{ aws_region }}"
+        tags: "{{ project_tags | combine({'Name': gastosmart_vpc_name}) }}"
+      register: created_vpc
+      when: create_gastosmart_vpc | bool
+
+    - name: Definir VPC efectiva
+      set_fact:
+        gastosmart_vpc_id: "{{ created_vpc.vpc.id if (create_gastosmart_vpc | bool) else existing_vpc_id }}"
+
+    - name: Crear subred publica
+      amazon.aws.ec2_vpc_subnet:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ gastosmart_vpc_id }}"
+        cidr: "{{ public_subnet_cidr }}"
+        az: "{{ availability_zone }}"
+        map_public: true
+        tags: "{{ project_tags | combine({'Name': 'gastosmart-public-subnet', 'Tier': 'public'}) }}"
+      register: public_subnet
+
+    - name: Crear subred privada
+      amazon.aws.ec2_vpc_subnet:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ gastosmart_vpc_id }}"
+        cidr: "{{ private_subnet_cidr }}"
+        az: "{{ availability_zone }}"
+        map_public: false
+        tags: "{{ project_tags | combine({'Name': 'gastosmart-private-subnet', 'Tier': 'private'}) }}"
+      register: private_subnet
+
+    - name: Crear Internet Gateway
+      amazon.aws.ec2_vpc_igw:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ gastosmart_vpc_id }}"
+        tags: "{{ project_tags | combine({'Name': 'gastosmart-igw'}) }}"
+      register: igw
+
+    - name: Crear tabla de rutas publica
+      amazon.aws.ec2_vpc_route_table:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ gastosmart_vpc_id }}"
+        tags: "{{ project_tags | combine({'Name': 'gastosmart-public-rt'}) }}"
+        subnets:
+          - "{{ public_subnet.subnet.id }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ igw.gateway_id }}"
+
+    - name: Crear NAT Gateway opcional
+      amazon.aws.ec2_vpc_nat_gateway:
+        region: "{{ aws_region }}"
+        subnet_id: "{{ public_subnet.subnet.id }}"
+        if_exist_do_not_create: true
+        wait: true
+        tags: "{{ project_tags | combine({'Name': 'gastosmart-nat'}) }}"
+      register: nat_gateway
+      when: create_nat_gateway | bool
+
+    - name: Crear tabla de rutas privada sin salida directa a Internet
+      amazon.aws.ec2_vpc_route_table:
+        region: "{{ aws_region }}"
+        vpc_id: "{{ gastosmart_vpc_id }}"
+        tags: "{{ project_tags | combine({'Name': 'gastosmart-private-rt'}) }}"
+        subnets:
+          - "{{ private_subnet.subnet.id }}"
+        routes: "{{ ([{'dest': '0.0.0.0/0', 'gateway_id': nat_gateway.nat_gateway_id}] if (create_nat_gateway | bool) else []) }}"
+
+    - name: Crear Security Group de monitorizacion
+      amazon.aws.ec2_security_group:
+        name: "{{ monitorizacion_sg_name }}"
+        description: "Acceso administrativo a Uptime Kuma y Grafana"
+        region: "{{ aws_region }}"
+        vpc_id: "{{ gastosmart_vpc_id }}"
+        purge_rules: true
+        purge_rules_egress: true
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: "{{ effective_admin_cidr }}"
+            rule_desc: SSH solo desde IP administrativa
+          - proto: tcp
+            from_port: 3001
+            to_port: 3001
+            cidr_ip: "{{ effective_admin_cidr }}"
+            rule_desc: Uptime Kuma solo desde IP administrativa
+          - proto: tcp
+            from_port: 3000
+            to_port: 3000
+            cidr_ip: "{{ effective_admin_cidr }}"
+            rule_desc: Grafana solo desde IP administrativa
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+      register: monitorizacion_sg
+
+    - name: Crear Security Group de frontend
+      amazon.aws.ec2_security_group:
+        name: "{{ frontend_sg_name }}"
+        description: "Frontend publico GastoSmart"
+        region: "{{ aws_region }}"
+        vpc_id: "{{ gastosmart_vpc_id }}"
+        purge_rules: true
+        purge_rules_egress: true
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: "{{ effective_admin_cidr }}"
+            rule_desc: SSH solo desde IP administrativa
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: "{{ web_cidr }}"
+            rule_desc: HTTP publico del frontend
+          - proto: tcp
+            from_port: 9100
+            to_port: 9100
+            cidr_ip: "{{ effective_admin_cidr }}"
+            rule_desc: Node Exporter desde IP administrativa
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+      register: frontend_sg
+
+    - name: Crear Security Group de backend privado
+      amazon.aws.ec2_security_group:
+        name: "{{ backend_sg_name }}"
+        description: "Backend privado GastoSmart"
+        region: "{{ aws_region }}"
+        vpc_id: "{{ gastosmart_vpc_id }}"
+        purge_rules: true
+        purge_rules_egress: true
+        rules:
+          - proto: tcp
+            from_port: 8000
+            to_port: 8000
+            group_id: "{{ frontend_sg.group_id }}"
+            rule_desc: API solo desde frontend-sg
+          - proto: tcp
+            from_port: 8000
+            to_port: 8000
+            group_id: "{{ monitorizacion_sg.group_id }}"
+            rule_desc: Health checks desde monitorizacion-sg
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            group_id: "{{ monitorizacion_sg.group_id }}"
+            rule_desc: SSH privado via bastion de monitorizacion
+          - proto: tcp
+            from_port: 9100
+            to_port: 9100
+            group_id: "{{ monitorizacion_sg.group_id }}"
+            rule_desc: Node Exporter privado via monitorizacion
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+      register: backend_sg
+
+    - name: Crear Security Group de MongoDB privado
+      amazon.aws.ec2_security_group:
+        name: "{{ mongodb_sg_name }}"
+        description: "MongoDB privado GastoSmart"
+        region: "{{ aws_region }}"
+        vpc_id: "{{ gastosmart_vpc_id }}"
+        purge_rules: true
+        purge_rules_egress: true
+        rules:
+          - proto: tcp
+            from_port: 27017
+            to_port: 27017
+            group_id: "{{ backend_sg.group_id }}"
+            rule_desc: MongoDB solo desde backend-sg
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            group_id: "{{ monitorizacion_sg.group_id }}"
+            rule_desc: SSH privado via bastion de monitorizacion
+          - proto: tcp
+            from_port: 9100
+            to_port: 9100
+            group_id: "{{ monitorizacion_sg.group_id }}"
+            rule_desc: Node Exporter privado via monitorizacion
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+      register: mongodb_sg
+
+    - name: Crear instancia de monitorizacion publica
+      amazon.aws.ec2_instance:
+        name: "{{ monitorizacion_instance_name }}"
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type_monitorizacion }}"
+        image_id: "{{ ubuntu_ami_id }}"
+        region: "{{ aws_region }}"
+        vpc_subnet_id: "{{ public_subnet.subnet.id }}"
+        security_group: "{{ monitorizacion_sg.group_id }}"
+        wait: yes
+        network:
+          assign_public_ip: true
+        tags: "{{ project_tags | combine({'Name': monitorizacion_instance_name, 'Rol': 'monitorizacion'}) }}"
+      register: monitorizacion_ec2
+
+    - name: Crear instancia frontend publica
+      amazon.aws.ec2_instance:
+        name: "{{ frontend_instance_name }}"
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type_frontend }}"
+        image_id: "{{ ubuntu_ami_id }}"
+        region: "{{ aws_region }}"
+        vpc_subnet_id: "{{ public_subnet.subnet.id }}"
+        security_group: "{{ frontend_sg.group_id }}"
+        wait: yes
+        network:
+          assign_public_ip: true
+        tags: "{{ project_tags | combine({'Name': frontend_instance_name, 'Rol': 'frontend'}) }}"
+      register: frontend_ec2
+
+    - name: Crear instancia backend privada
+      amazon.aws.ec2_instance:
+        name: "{{ backend_instance_name }}"
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type_backend }}"
+        image_id: "{{ ubuntu_ami_id }}"
+        region: "{{ aws_region }}"
+        vpc_subnet_id: "{{ private_subnet.subnet.id }}"
+        security_group: "{{ backend_sg.group_id }}"
+        wait: yes
+        network:
+          assign_public_ip: false
+        tags: "{{ project_tags | combine({'Name': backend_instance_name, 'Rol': 'backend'}) }}"
+      register: backend_ec2
+
+    - name: Crear instancia MongoDB privada
+      amazon.aws.ec2_instance:
+        name: "{{ mongodb_instance_name }}"
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type_mongodb }}"
+        image_id: "{{ ubuntu_ami_id }}"
+        region: "{{ aws_region }}"
+        vpc_subnet_id: "{{ private_subnet.subnet.id }}"
+        security_group: "{{ mongodb_sg.group_id }}"
+        wait: yes
+        network:
+          assign_public_ip: false
+        tags: "{{ project_tags | combine({'Name': mongodb_instance_name, 'Rol': 'mongodb'}) }}"
+      register: mongodb_ec2
+
+    - name: Esperar SSH en instancias publicas
+      wait_for:
+        host: "{{ item }}"
+        port: 22
+        timeout: 300
+        state: started
+      loop:
+        - "{{ monitorizacion_ec2.instances[0].public_ip_address }}"
+        - "{{ frontend_ec2.instances[0].public_ip_address }}"
+
+    - name: Registrar huellas SSH publicas
+      known_hosts:
+        name: "{{ item }}"
+        key: "{{ lookup('pipe', 'ssh-keyscan -H ' ~ item) }}"
+        path: "{{ known_hosts_file }}"
+        state: present
+      loop:
+        - "{{ monitorizacion_ec2.instances[0].public_ip_address }}"
+        - "{{ frontend_ec2.instances[0].public_ip_address }}"
+
+    - name: Crear inventario GastoSmart AWS
+      copy:
+        dest: "{{ playbook_dir }}/../inventories/gastosmart_aws.ini"
+        mode: '0600'
+        content: |
+          [monitorizacion]
+          monitor ansible_host={{ monitorizacion_ec2.instances[0].public_ip_address }} ansible_user={{ ansible_user_aws }} ansible_ssh_private_key_file={{ key_file }}
+
+          [frontend]
+          frontend ansible_host={{ frontend_ec2.instances[0].public_ip_address }} ansible_user={{ ansible_user_aws }} ansible_ssh_private_key_file={{ key_file }}
+
+          [backend]
+          backend ansible_host={{ backend_ec2.instances[0].private_ip_address }} ansible_user={{ ansible_user_aws }} ansible_ssh_private_key_file={{ key_file }} ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new -o ProxyCommand="ssh -i {{ key_file }} -o StrictHostKeyChecking=accept-new -W %h:%p {{ ansible_user_aws }}@{{ monitorizacion_ec2.instances[0].public_ip_address }}"'
+
+          [mongodb]
+          mongodb ansible_host={{ mongodb_ec2.instances[0].private_ip_address }} ansible_user={{ ansible_user_aws }} ansible_ssh_private_key_file={{ key_file }} ansible_ssh_common_args='-o StrictHostKeyChecking=accept-new -o ProxyCommand="ssh -i {{ key_file }} -o StrictHostKeyChecking=accept-new -W %h:%p {{ ansible_user_aws }}@{{ monitorizacion_ec2.instances[0].public_ip_address }}"'
+
+          [gastosmart:children]
+          monitorizacion
+          frontend
+          backend
+          mongodb
+
+    - name: Mostrar resumen seguro
+      debug:
+        msg:
+          - "Frontend publico: http://{{ frontend_ec2.instances[0].public_ip_address }}"
+          - "Monitorizacion publica: {{ monitorizacion_ec2.instances[0].public_ip_address }}"
+          - "Backend privado: {{ backend_ec2.instances[0].private_ip_address }} sin IP publica"
+          - "MongoDB privado: {{ mongodb_ec2.instances[0].private_ip_address }} sin IP publica"
+          - "Inventario generado en inventories/gastosmart_aws.ini"

@@ -1,6 +1,6 @@
 ---
 - name: Desplegar Uptime Kuma en instancia EC2 AWS
-  hosts: aws
+  hosts: aws:monitorizacion
   become: yes
   gather_facts: no
 

@@ -1,0 +1,126 @@
+---
+- name: Desplegar backend privado de GastoSmart
+  hosts: backend
+  become: yes
+  gather_facts: no
+
+  vars_files:
+    - variables_gastosmart.yml
+
+  tasks:
+    - name: Esperar conexion SSH via bastion
+      wait_for_connection:
+        timeout: 300
+        delay: 10
+
+    - name: Recolectar informacion del sistema
+      setup:
+
+    - name: Definir IP privada de MongoDB
+      set_fact:
+        mongodb_private_host: "{{ mongodb_private_ip | default(hostvars['mongodb'].ansible_host) }}"
+
+    - name: Actualizar cache de paquetes
+      apt:
+        update_cache: yes
+
+    - name: Instalar Docker
+      apt:
+        name:
+          - docker.io
+        state: present
+
+    - name: Iniciar y habilitar Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Crear estructura de despliegue
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /opt/gastosmart-deploy
+        - /opt/gastosmart-deploy/apps/gastosmart/backend
+
+    - name: Copiar Dockerfile del backend
+      copy:
+        src: ../apps/gastosmart/backend/Dockerfile
+        dest: /opt/gastosmart-deploy/apps/gastosmart/backend/Dockerfile
+        mode: '0644'
+
+    - name: Copiar directorios de codigo del backend sin secretos
+      copy:
+        src: "../apps/gastosmart/backend/{{ item }}"
+        dest: /opt/gastosmart-deploy/apps/gastosmart/backend/
+        mode: preserve
+      loop:
+        - config
+        - database
+        - models
+        - routers
+        - scripts
+        - services
+
+    - name: Copiar archivos base del backend sin .env
+      copy:
+        src: "../apps/gastosmart/backend/{{ item }}"
+        dest: "/opt/gastosmart-deploy/apps/gastosmart/backend/{{ item }}"
+        mode: '0644'
+      loop:
+        - main.py
+        - requirements.txt
+
+    - name: Crear archivo de entorno del backend
+      copy:
+        dest: /opt/gastosmart-deploy/backend.env
+        mode: '0600'
+        content: |
+          MONGODB_URL=mongodb://{{ mongodb_private_host }}:27017/{{ gastosmart_database_name }}
+          DATABASE_NAME={{ gastosmart_database_name }}
+          MONGODB_TIMEOUT_MS={{ gastosmart_mongodb_timeout_ms }}
+          EMAIL_DELIVERY_MODE=console
+
+    - name: Construir imagen Docker del backend
+      command: docker build -f apps/gastosmart/backend/Dockerfile -t gastosmart-backend:latest .
+      args:
+        chdir: /opt/gastosmart-deploy
+
+    - name: Eliminar contenedor anterior si existe
+      command: docker rm -f gastosmart-backend
+      register: remove_backend
+      failed_when: false
+      changed_when: remove_backend.rc == 0
+
+    - name: Levantar backend
+      command: >
+        docker run -d
+        --name gastosmart-backend
+        --restart unless-stopped
+        --env-file /opt/gastosmart-deploy/backend.env
+        -p 8000:8000
+        gastosmart-backend:latest
+
+    - name: Validar /health local
+      command: curl -fsS http://localhost:8000/health
+      register: backend_health
+      retries: 10
+      delay: 5
+      until: backend_health.rc == 0
+      changed_when: false
+
+    - name: Validar /db-health local
+      command: curl -fsS http://localhost:8000/db-health
+      register: backend_db_health
+      retries: 10
+      delay: 5
+      until: backend_db_health.rc == 0
+      changed_when: false
+
+    - name: Mostrar endpoints backend
+      debug:
+        msg:
+          - "{{ backend_health.stdout }}"
+          - "{{ backend_db_health.stdout }}"

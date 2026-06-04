@@ -1,0 +1,43 @@
+---
+aws_region: us-east-1
+key_name: monitorizacion-key
+key_file: /home/kevin/Desktop/Monitorizacion-de-red/monitorizacion-key.pem
+known_hosts_file: ~/.ssh/known_hosts
+
+# Usar "auto" para detectar la IP publica actual del administrador.
+admin_cidr: auto
+web_cidr: "0.0.0.0/0"
+
+# VPC nueva por defecto. Para usar una VPC existente, cambiar a false y definir existing_vpc_id.
+create_gastosmart_vpc: true
+existing_vpc_id: ""
+gastosmart_vpc_name: gastosmart-vpc
+gastosmart_vpc_cidr: 10.40.0.0/16
+public_subnet_cidr: 10.40.1.0/24
+private_subnet_cidr: 10.40.2.0/24
+availability_zone: us-east-1a
+create_nat_gateway: true
+
+monitorizacion_sg_name: monitorizacion-sg
+frontend_sg_name: frontend-sg
+backend_sg_name: backend-sg
+mongodb_sg_name: mongodb-sg
+
+frontend_instance_name: gastosmart-frontend
+backend_instance_name: gastosmart-backend
+mongodb_instance_name: gastosmart-mongodb
+monitorizacion_instance_name: monitorizacion-red-uptime-kuma
+
+instance_type_frontend: t3.small
+instance_type_backend: t3.small
+instance_type_mongodb: t3.small
+instance_type_monitorizacion: t3.small
+
+ansible_user_aws: ubuntu
+gastosmart_database_name: gastosmart
+gastosmart_mongodb_timeout_ms: 3000
+
+project_tags:
+  Proyecto: MonitorizacionRed
+  Aplicacion: GastoSmart
+  CreadoPor: Ansible

@@ -1,17 +1,94 @@
+# Llaves, certificados y credenciales
 *.pem
 *.key
 *.pub
+*.crt
+*.csr
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
 
+# Variables de entorno reales
 .env
 .env.*
-.secrets/
-credentials
-config
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
 
+# Secretos y credenciales locales
+.secrets/
+**/.secrets/
 .aws/
+credentials
+credentials.*
+aws_config.json
+vault-password*
+*.vault
+*.secret
+*.secrets
+
+# Inventarios generados con IPs reales
+inventory.ini
+inventories/*.ini
+!inventories/*.ini.example
+
+# Python
 __pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+**/.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+*.sqlite
+*.sqlite3
+
+# Node / Vite
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+.vite/
+**/.vite/
+.cache/
+**/.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Docker / Ansible / logs
 *.log
 *.retry
+*.bak
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.ansible/
+**/.ansible/
 
+# Dumps y respaldos locales
+dump/
+**/dump/
+dumps/
+**/dumps/
+backup/
+**/backup/
+backups/
+**/backups/
+
+# Sistema y editores
 .DS_Store
+Thumbs.db
 .vscode/
+.idea/

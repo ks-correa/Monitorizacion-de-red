@@ -1,0 +1,85 @@
+---
+- name: Desplegar MongoDB privado para GastoSmart
+  hosts: mongodb
+  become: yes
+  gather_facts: no
+
+  vars_files:
+    - variables_gastosmart.yml
+
+  tasks:
+    - name: Esperar conexion SSH via bastion
+      wait_for_connection:
+        timeout: 300
+        delay: 10
+
+    - name: Recolectar informacion del sistema
+      setup:
+
+    - name: Actualizar cache de paquetes
+      apt:
+        update_cache: yes
+
+    - name: Instalar Docker
+      apt:
+        name:
+          - docker.io
+        state: present
+
+    - name: Iniciar y habilitar Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Crear directorio de MongoDB
+      file:
+        path: /opt/gastosmart/mongodb
+        state: directory
+        mode: '0755'
+
+    - name: Copiar configuracion de MongoDB
+      copy:
+        src: ../apps/gastosmart/mongodb/mongod.conf
+        dest: /opt/gastosmart/mongodb/mongod.conf
+        mode: '0644'
+
+    - name: Copiar inicializacion de MongoDB
+      copy:
+        src: ../apps/gastosmart/mongodb/init-mongo.js
+        dest: /opt/gastosmart/mongodb/init-mongo.js
+        mode: '0644'
+
+    - name: Crear volumen persistente
+      command: docker volume create gastosmart-mongodb-data
+      changed_when: false
+
+    - name: Eliminar contenedor anterior si existe
+      command: docker rm -f gastosmart-mongodb
+      register: remove_mongo
+      failed_when: false
+      changed_when: remove_mongo.rc == 0
+
+    - name: Levantar MongoDB en Docker
+      command: >
+        docker run -d
+        --name gastosmart-mongodb
+        --restart unless-stopped
+        -p 27017:27017
+        -v gastosmart-mongodb-data:/data/db
+        -v /opt/gastosmart/mongodb/mongod.conf:/etc/mongod.conf:ro
+        -v /opt/gastosmart/mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+        mongo:7
+        mongod --config /etc/mongod.conf
+
+    - name: Validar ping a MongoDB local
+      command: docker exec gastosmart-mongodb mongosh --quiet --eval "db.adminCommand('ping').ok"
+      register: mongo_ping
+      retries: 10
+      delay: 5
+      until: mongo_ping.rc == 0
+      changed_when: false
+
+    - name: Mostrar resultado MongoDB
+      debug:
+        msg: "MongoDB privado activo en {{ ansible_host }}:27017. La exposicion externa queda controlada por mongodb-sg."

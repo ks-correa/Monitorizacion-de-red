@@ -1,0 +1,59 @@
+---
+- name: Preparar monitores de Uptime Kuma para GastoSmart
+  hosts: monitorizacion
+  become: yes
+  gather_facts: no
+
+  vars_files:
+    - variables_gastosmart.yml
+
+  tasks:
+    - name: Definir objetivos de monitoreo
+      set_fact:
+        frontend_public_url: "http://{{ hostvars['frontend'].ansible_host }}"
+        backend_health_url: "http://{{ hostvars['backend'].ansible_host }}:8000/health"
+        backend_db_health_url: "http://{{ hostvars['backend'].ansible_host }}:8000/db-health"
+
+    - name: Crear directorio de especificacion de monitores
+      file:
+        path: /opt/gastosmart-monitores
+        state: directory
+        mode: '0755'
+
+    - name: Crear especificacion documentada para Uptime Kuma
+      copy:
+        dest: /opt/gastosmart-monitores/monitores_gastosmart.md
+        mode: '0644'
+        content: |
+          # Monitores Uptime Kuma para GastoSmart
+
+          Crear estos monitores en Uptime Kuma desde la instancia de monitorizacion.
+
+          | Monitor | Tipo | Objetivo |
+          | --- | --- | --- |
+          | GastoSmart Frontend | HTTP | {{ frontend_public_url }} |
+          | GastoSmart Backend Health | HTTP | {{ backend_health_url }} |
+          | GastoSmart DB Health | HTTP | {{ backend_db_health_url }} |
+          | Uptime Kuma | HTTP | http://localhost:3001 |
+          | Grafana | HTTP | http://localhost:3000 |
+          | SSH Frontend | TCP | {{ hostvars['frontend'].ansible_host }}:22 |
+          | SSH Backend | TCP | {{ hostvars['backend'].ansible_host }}:22 |
+          | SSH MongoDB | TCP | {{ hostvars['mongodb'].ansible_host }}:22 |
+
+          MongoDB se monitorea indirectamente mediante `/db-health`; no se expone `27017` a Internet.
+
+    - name: Validar objetivos desde monitorizacion
+      shell: |
+        set -e
+        curl -fsS {{ frontend_public_url }} >/dev/null
+        curl -fsS {{ backend_health_url }}
+        echo
+        curl -fsS {{ backend_db_health_url }}
+      args:
+        executable: /bin/bash
+      register: kuma_targets
+      changed_when: false
+
+    - name: Mostrar validacion de monitores
+      debug:
+        var: kuma_targets.stdout_lines

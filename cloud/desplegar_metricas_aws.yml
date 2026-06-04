@@ -1,6 +1,6 @@
 ---
 - name: Desplegar modulo de metricas en instancia EC2 AWS
-  hosts: aws
+  hosts: aws:monitorizacion
   gather_facts: no
 
   vars_files:
@@ -88,12 +88,14 @@
       args:
         chdir: /opt/metricas
 
-    - name: Aplicar clave segura al usuario administrador de Grafana
+    - name: Esperar a que Grafana este listo
       become: yes
-      command: >
-        docker exec grafana grafana cli admin reset-admin-password
-        {{ lookup('password', playbook_dir + '/../' + grafana_password_file + ' length=24 chars=ascii_letters,digits') }}
-      no_log: true
+      command: docker exec grafana grafana cli admin --help
+      register: grafana_ready
+      retries: 12
+      delay: 5
+      until: grafana_ready.rc == 0
+      changed_when: false
 
     - name: Verificar contenedores activos
       become: yes
