@@ -8,8 +8,7 @@ KEY_FILE="${KEY_FILE:-/home/kevin/Desktop/Monitorizacion-de-red/monitorizacion-k
 USER_NAME="${ANSIBLE_USER_AWS:-ubuntu}"
 OUT="inventories/gastosmart_aws.ini"
 
-MONITOR_INSTANCE_ID="${MONITOR_INSTANCE_ID:-i-0c0477441728ec523}"
-MONITOR_NAME="${MONITOR_NAME:-monitorizacion-red-uptime-kuma}"
+MONITOR_NAME="${MONITOR_NAME:-gastosmart-monitorizacion}"
 FRONTEND_NAME="${FRONTEND_NAME:-gastosmart-frontend}"
 BACKEND_NAME="${BACKEND_NAME:-gastosmart-backend}"
 MONGODB_NAME="${MONGODB_NAME:-gastosmart-mongodb}"
@@ -23,11 +22,7 @@ query_instance() {
     --output text
 }
 
-MONITOR_PUBLIC_IP="$(aws ec2 describe-instances \
-  --region "$REGION" \
-  --instance-ids "$MONITOR_INSTANCE_ID" \
-  --query "Reservations[0].Instances[0].PublicIpAddress" \
-  --output text)"
+MONITOR_PUBLIC_IP="$(query_instance "$MONITOR_NAME" PublicIpAddress)"
 FRONTEND_PUBLIC_IP="$(query_instance "$FRONTEND_NAME" PublicIpAddress)"
 BACKEND_PRIVATE_IP="$(query_instance "$BACKEND_NAME" PrivateIpAddress)"
 MONGODB_PRIVATE_IP="$(query_instance "$MONGODB_NAME" PrivateIpAddress)"

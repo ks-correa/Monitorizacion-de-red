@@ -19,11 +19,18 @@
       apt:
         update_cache: yes
 
-    - name: Instalar Docker
+    - name: Verificar si Docker ya esta instalado
+      command: docker --version
+      register: docker_instalado
+      changed_when: false
+      failed_when: false
+
+    - name: Instalar Docker si no existe
       apt:
         name:
           - docker.io
         state: present
+      when: docker_instalado.rc != 0
 
     - name: Iniciar y habilitar Docker
       service:
@@ -52,9 +59,9 @@
         dest: /opt/metricas/docker-compose-metricas.yml
         mode: '0644'
 
-    - name: Copiar archivo prometheus.yml
+    - name: Copiar archivo prometheus local
       copy:
-        src: ../metricas/prometheus.yml
+        src: ../metricas/prometheus.local.yml
         dest: /opt/metricas/prometheus.yml
         mode: '0644'
 
@@ -78,6 +85,14 @@
       command: docker compose -f docker-compose-metricas.yml up -d
       args:
         chdir: /opt/metricas
+
+    - name: Esperar a que Grafana este listo
+      command: docker exec grafana grafana cli admin --help
+      register: grafana_ready
+      retries: 12
+      delay: 5
+      until: grafana_ready.rc == 0
+      changed_when: false
 
     - name: Aplicar clave segura al usuario administrador de Grafana
       command: >

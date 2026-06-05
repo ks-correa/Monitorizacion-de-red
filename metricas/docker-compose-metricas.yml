@@ -20,6 +20,8 @@ services:
     image: prom/blackbox-exporter:latest
     container_name: blackbox-exporter
     restart: always
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - metricas-net
 

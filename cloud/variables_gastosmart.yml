@@ -26,7 +26,7 @@ mongodb_sg_name: mongodb-sg
 frontend_instance_name: gastosmart-frontend
 backend_instance_name: gastosmart-backend
 mongodb_instance_name: gastosmart-mongodb
-monitorizacion_instance_name: monitorizacion-red-uptime-kuma
+monitorizacion_instance_name: gastosmart-monitorizacion
 
 instance_type_frontend: t3.small
 instance_type_backend: t3.small

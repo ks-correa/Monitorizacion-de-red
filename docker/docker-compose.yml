@@ -5,6 +5,8 @@ services:
     restart: always
     ports:
       - "3001:3001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - uptime-kuma-data:/app/data
 

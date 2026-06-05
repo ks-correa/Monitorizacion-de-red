@@ -146,6 +146,11 @@
             to_port: 3000
             cidr_ip: "{{ effective_admin_cidr }}"
             rule_desc: Grafana solo desde IP administrativa
+          - proto: tcp
+            from_port: 9090
+            to_port: 9090
+            cidr_ip: "{{ effective_admin_cidr }}"
+            rule_desc: Prometheus solo desde IP administrativa
         rules_egress:
           - proto: all
             cidr_ip: 0.0.0.0/0

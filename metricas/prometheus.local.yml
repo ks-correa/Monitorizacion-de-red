@@ -13,16 +13,16 @@ scrape_configs:
       - targets:
           - "node-exporter:9100"
 
-  - job_name: "gastosmart_frontend"
+  - job_name: "gastosmart_local_frontend"
     metrics_path: /probe
     params:
       module: [http_2xx]
     static_configs:
       - targets:
-          - "http://100.56.250.109/"
+          - "http://host.docker.internal:8080/"
         labels:
           layer: "frontend"
-          service: "GastoSmart Frontend"
+          service: "GastoSmart Local Frontend"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -31,16 +31,16 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox-exporter:9115
 
-  - job_name: "gastosmart_backend_health"
+  - job_name: "gastosmart_local_backend_health"
     metrics_path: /probe
     params:
       module: [http_2xx]
     static_configs:
       - targets:
-          - "http://100.56.250.109/api/health"
+          - "http://host.docker.internal:8080/api/health"
         labels:
           layer: "backend"
-          service: "GastoSmart Backend Health"
+          service: "GastoSmart Local Backend Health"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -49,16 +49,16 @@ scrape_configs:
       - target_label: __address__
         replacement: blackbox-exporter:9115
 
-  - job_name: "gastosmart_db_health"
+  - job_name: "gastosmart_local_db_health"
     metrics_path: /probe
     params:
       module: [http_2xx]
     static_configs:
       - targets:
-          - "http://100.56.250.109/api/db-health"
+          - "http://host.docker.internal:8080/api/db-health"
         labels:
           layer: "database"
-          service: "GastoSmart MongoDB indirecto"
+          service: "GastoSmart Local MongoDB indirecto"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
